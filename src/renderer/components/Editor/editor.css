@@ -88,28 +88,20 @@
   font-family: var(--font-mono);
   font-size: 0.875rem;
   line-height: 1.6;
-  background: var(--color-mist);
+  background: var(--muted);
   border-radius: 0.5rem;
   padding: 1rem 1.25rem;
   margin: 1rem 0;
   overflow-x: auto;
 }
 
-.dark .ProseMirror pre {
-  background: var(--color-dark-mist);
-}
-
 /* Inline code */
 .ProseMirror code:not(pre code) {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  background: var(--color-mist);
+  background: var(--muted);
   padding: 0.15em 0.35em;
   border-radius: 0.25rem;
-}
-
-.dark .ProseMirror code:not(pre code) {
-  background: var(--color-dark-mist);
 }
 
 /* Blockquote */
@@ -157,3 +149,56 @@
 .ProseMirror a:hover {
   text-decoration-color: var(--color-sage);
 }
+
+/* ── Syntax highlighting (OKLCh) ── */
+
+:root {
+  --hljs-keyword: oklch(0.5 0.15 290);
+  --hljs-string: oklch(0.5 0.14 155);
+  --hljs-number: oklch(0.5 0.14 65);
+  --hljs-comment: oklch(0.55 0 0);
+  --hljs-tag: oklch(0.5 0.12 240);
+  --hljs-name: oklch(0.5 0.13 30);
+  --hljs-type: oklch(0.5 0.12 200);
+  --hljs-deletion: oklch(0.5 0.18 25);
+}
+
+.dark {
+  --hljs-keyword: oklch(0.75 0.15 290);
+  --hljs-string: oklch(0.72 0.14 155);
+  --hljs-number: oklch(0.72 0.14 65);
+  --hljs-comment: oklch(0.55 0 0);
+  --hljs-tag: oklch(0.72 0.12 240);
+  --hljs-name: oklch(0.72 0.13 30);
+  --hljs-type: oklch(0.72 0.12 200);
+  --hljs-deletion: oklch(0.72 0.18 25);
+}
+
+.ProseMirror .hljs-keyword,
+.ProseMirror .hljs-selector-tag,
+.ProseMirror .hljs-built_in { color: var(--hljs-keyword); }
+
+.ProseMirror .hljs-string,
+.ProseMirror .hljs-addition { color: var(--hljs-string); }
+
+.ProseMirror .hljs-number,
+.ProseMirror .hljs-literal { color: var(--hljs-number); }
+
+.ProseMirror .hljs-comment,
+.ProseMirror .hljs-quote { color: var(--hljs-comment); font-style: italic; }
+
+.ProseMirror .hljs-tag,
+.ProseMirror .hljs-attr,
+.ProseMirror .hljs-attribute { color: var(--hljs-tag); }
+
+.ProseMirror .hljs-name,
+.ProseMirror .hljs-selector-class,
+.ProseMirror .hljs-variable,
+.ProseMirror .hljs-template-variable { color: var(--hljs-name); }
+
+.ProseMirror .hljs-type,
+.ProseMirror .hljs-title { color: var(--hljs-type); }
+
+.ProseMirror .hljs-deletion { color: var(--hljs-deletion); }
+
+.ProseMirror .hljs-function { color: var(--hljs-tag); }

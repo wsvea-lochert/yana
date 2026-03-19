@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search, X, PenLine, Plus } from 'lucide-react'
+import { EditorContent } from '@tiptap/react'
 import { cn } from '@/lib/utils'
 import { Kbd } from '@/components/ui/kbd'
 import { Button } from '@/components/ui/button'
 import { ResultsList } from './ResultsList'
+import { useOverlayEditor, extractTitleAndContent } from './useOverlayEditor'
 import type { OverlayApi } from '@shared/types/electron-env'
 import type { SearchResult } from '@shared/types/search'
 
@@ -16,21 +18,36 @@ export default function App() {
   const [visible, setVisible] = useState(false)
 
   // Capture state
-  const [captureText, setCaptureText] = useState('')
+  const [currentMarkdown, setCurrentMarkdown] = useState('')
   const [savedText, setSavedText] = useState('')
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [showUnsavedPrompt, setShowUnsavedPrompt] = useState(false)
+
+  const savedTextFromLoad = useRef(false)
+
+  const handleEditorUpdate = useCallback((md: string) => {
+    setCurrentMarkdown(md)
+    // When content is loaded into the editor, sync savedText to the
+    // normalized markdown so isDirty starts as false.
+    if (savedTextFromLoad.current) {
+      savedTextFromLoad.current = false
+      setSavedText(md)
+    }
+  }, [])
+
+  const { editor, getMarkdown, setContent, focus } = useOverlayEditor({
+    onUpdate: handleEditorUpdate
+  })
 
   // Search state
   const [results, setResults] = useState<readonly SearchResult[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const captureRef = useRef<HTMLTextAreaElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
 
-  const isDirty = captureText !== savedText
+  const isDirty = currentMarkdown !== savedText
 
   const handleSearch = useCallback(async (term: string) => {
     try {
@@ -72,17 +89,20 @@ export default function App() {
     }
   }, [mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function loadActiveNote() {
+  const loadActiveNote = useCallback(async () => {
     try {
       const activeId = await overlayApi.config.get('activeNoteId')
       if (typeof activeId === 'string' && activeId) {
         const note = await overlayApi.notes.get(activeId)
         if (note) {
-          const firstLine = note.frontmatter.title
+          const title = note.frontmatter.title
           const rest = note.content
-          const text = rest ? `${firstLine}\n${rest}` : firstLine
-          setCaptureText(text)
-          setSavedText(text)
+          const md = rest ? `# ${title}\n\n${rest}` : `# ${title}`
+          setContent(md)
+          // savedText is set to raw md here; the pending-content useEffect
+          // in the hook will fire onUpdate with normalized markdown, which
+          // updates currentMarkdown. We use a ref-based flag to sync both.
+          savedTextFromLoad.current = true
           setEditingNoteId(activeId)
           return
         }
@@ -90,10 +110,11 @@ export default function App() {
     } catch {
       // fall through to blank
     }
-    setCaptureText('')
+    setContent('')
+    setCurrentMarkdown('')
     setSavedText('')
     setEditingNoteId(null)
-  }
+  }, [setContent])
 
   useEffect(() => {
     const unsubscribe = overlayApi.on.overlayShown(() => {
@@ -104,20 +125,20 @@ export default function App() {
       setIsSaving(false)
       setShowUnsavedPrompt(false)
       loadActiveNote()
-      setTimeout(() => captureRef.current?.focus(), 50)
+      setTimeout(() => focus(), 50)
     })
     setVisible(true)
     loadActiveNote()
     return unsubscribe
-  }, [])
+  }, [loadActiveNote, focus])
 
   useEffect(() => {
     if (mode === 'capture') {
-      captureRef.current?.focus()
+      focus()
     } else {
       searchRef.current?.focus()
     }
-  }, [mode])
+  }, [mode, focus])
 
   function handleHide() {
     setVisible(false)
@@ -129,16 +150,14 @@ export default function App() {
     overlayApi.overlay.navigate(noteId)
   }
 
-  function parseCaptureText(): { title: string; content: string } {
-    const lines = captureText.split('\n')
-    const title = (lines[0] ?? '').trim()
-    const content = lines.slice(1).join('\n').trim()
-    return { title, content }
+  function parseEditorContent(): { title: string; content: string } {
+    const md = getMarkdown()
+    return extractTitleAndContent(md)
   }
 
-  async function handleSave() {
-    const { title, content } = parseCaptureText()
-    if (!title || isSaving) return
+  async function performSave(): Promise<boolean> {
+    const { title, content } = parseEditorContent()
+    if (!title || title === 'Untitled' || isSaving) return false
     setIsSaving(true)
     try {
       if (editingNoteId) {
@@ -146,10 +165,17 @@ export default function App() {
       } else {
         await overlayApi.notes.create({ title, content })
       }
-      handleHide()
+      return true
     } catch {
+      return false
+    } finally {
       setIsSaving(false)
     }
+  }
+
+  async function handleSave() {
+    const saved = await performSave()
+    if (saved) handleHide()
   }
 
   function handleNewNote() {
@@ -161,15 +187,16 @@ export default function App() {
   }
 
   function startNewNote() {
-    setCaptureText('')
+    setContent('')
+    setCurrentMarkdown('')
     setSavedText('')
     setEditingNoteId(null)
     setShowUnsavedPrompt(false)
-    setTimeout(() => captureRef.current?.focus(), 50)
+    setTimeout(() => focus(), 50)
   }
 
   async function saveAndNewNote() {
-    await handleSave()
+    await performSave()
     startNewNote()
   }
 
@@ -229,7 +256,7 @@ export default function App() {
     }
   }
 
-  const { title: parsedTitle } = parseCaptureText()
+  const { title: parsedTitle } = parseEditorContent()
 
   return (
     <div
@@ -318,15 +345,8 @@ export default function App() {
       <div className="flex-1 overflow-hidden">
         {mode === 'capture' ? (
           <div className="flex flex-col h-full">
-            <div className="flex-1 px-4 pt-3 pb-2 overflow-y-auto">
-              <textarea
-                ref={captureRef}
-                value={captureText}
-                onChange={(e) => setCaptureText(e.target.value)}
-                placeholder="Start typing... First line becomes the title"
-                rows={10}
-                className="w-full h-full text-sm bg-transparent outline-none placeholder:text-muted-foreground/40 resize-none leading-relaxed text-foreground"
-              />
+            <div className="flex-1 px-4 pt-3 pb-2 overflow-y-auto overlay-editor-scroll">
+              <EditorContent editor={editor} />
             </div>
 
             <div className="flex items-center justify-between px-4 py-2.5 border-t border-border">
@@ -350,7 +370,7 @@ export default function App() {
                 )}
                 <button
                   onClick={handleSave}
-                  disabled={!parsedTitle || isSaving}
+                  disabled={!parsedTitle || parsedTitle === 'Untitled' || isSaving}
                   className={cn(
                     'px-4 py-1.5 text-xs font-medium rounded-md transition-colors',
                     'bg-primary text-primary-foreground',
