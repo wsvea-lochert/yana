@@ -1,4 +1,5 @@
-import { ipcMain, type BrowserWindow, type Input } from 'electron'
+import { ipcMain, shell, type BrowserWindow, type Input } from 'electron'
+import { join } from 'path'
 import type { VaultService } from '../services/vault.service'
 import type { IndexService } from '../services/index.service'
 import type { SearchService } from '../services/search.service'
@@ -21,11 +22,12 @@ export interface Services {
 }
 
 export function registerIpcHandlers(services: Services): void {
-  registerNoteHandlers(services.vaultService, services.indexService, services.searchService)
+  registerNoteHandlers(services.vaultService, services.indexService, services.searchService, services.mainWindow)
   registerSearchHandlers(services.searchService)
   registerConfigHandlers()
   registerOverlayHandler(services.overlayWindow, services.mainWindow)
   registerHotkeyHandler(services.mainWindow)
+  registerShellHandlers()
 }
 
 function registerOverlayHandler(overlayWindow: BrowserWindow, mainWindow: BrowserWindow): void {
@@ -170,5 +172,13 @@ function registerHotkeyHandler(mainWindow: BrowserWindow): void {
         activeHandler = null
       }
     }, 10000)
+  })
+}
+
+function registerShellHandlers(): void {
+  ipcMain.handle(CHANNELS.SHELL_SHOW_IN_FOLDER, (_event, noteId: string) => {
+    const home = process.env.HOME ?? process.env.USERPROFILE ?? '.'
+    const filePath = join(home, 'QuickNote', `${noteId}.md`)
+    shell.showItemInFolder(filePath)
   })
 }

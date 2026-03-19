@@ -15,13 +15,13 @@ export function ShortcutHint({ shortcut, className }: ShortcutHintProps) {
   if (!modifierHeld) return null
 
   const display = isMac
-    ? shortcut.replace('Mod', '\u2318')
-    : shortcut.replace('Mod', 'Ctrl')
+    ? shortcut.replace('Mod+', '\u2318 + ')
+    : shortcut.replace('Mod+', 'Ctrl + ')
 
   return (
     <Kbd
       className={cn(
-        'ml-auto text-[10px] animate-in fade-in duration-100',
+        'ml-auto text-[10px] h-auto py-0.5 animate-in fade-in duration-100',
         className
       )}
     >

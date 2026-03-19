@@ -9,13 +9,27 @@ import { common, createLowlight } from 'lowlight'
 import { useNoteStore } from '../../stores/note.store'
 import { AUTOSAVE_DEBOUNCE_MS } from '@shared/constants/defaults'
 import { WikiLink } from './extensions/wiki-link'
-import { EditorHeader } from './EditorHeader'
 import { LoadingBar } from '../shared/LoadingBar'
 import { Kbd } from '@/components/ui/kbd'
 import { titleToSlug } from '@shared/utils/slug'
 import './editor.css'
 
 const lowlight = createLowlight(common)
+
+function extractTitleAndContent(markdown: string): { title: string; content: string } {
+  const lines = markdown.split('\n')
+  const firstLine = lines[0] ?? ''
+  const title = firstLine.replace(/^#\s+/, '').trim() || 'Untitled'
+
+  // Skip the heading line and any blank lines immediately after it
+  let contentStart = 1
+  while (contentStart < lines.length && lines[contentStart].trim() === '') {
+    contentStart++
+  }
+  const content = lines.slice(contentStart).join('\n')
+
+  return { title, content }
+}
 
 export function Editor() {
   const activeNote = useNoteStore((s) => s.activeNote)
@@ -53,7 +67,8 @@ export function Editor() {
       if (!activeNote || isSettingContent.current) return
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       saveTimerRef.current = setTimeout(() => {
-        updateNote({ id: activeNote.id, content: markdown })
+        const { title, content } = extractTitleAndContent(markdown)
+        updateNote({ id: activeNote.id, title, content })
       }, AUTOSAVE_DEBOUNCE_MS)
     },
     [activeNote, updateNote]
@@ -65,7 +80,12 @@ export function Editor() {
         codeBlock: false
       }),
       Placeholder.configure({
-        placeholder: 'Start writing...'
+        placeholder: ({ node }) => {
+          if (node.type.name === 'heading' && node.attrs.level === 1) {
+            return 'Note title...'
+          }
+          return 'Start writing...'
+        }
       }),
       Link.configure({
         openOnClick: false,
@@ -94,7 +114,10 @@ export function Editor() {
   useEffect(() => {
     if (!editor || !activeNote) return
     isSettingContent.current = true
-    editor.commands.setContent(activeNote.content)
+    const title = activeNote.frontmatter.title
+    const content = activeNote.content
+    const fullContent = content ? `# ${title}\n\n${content}` : `# ${title}`
+    editor.commands.setContent(fullContent)
     isSettingContent.current = false
   }, [editor, activeNote?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -103,11 +126,6 @@ export function Editor() {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     }
   }, [])
-
-  function handleTitleChange(newTitle: string) {
-    if (!activeNote) return
-    updateNote({ id: activeNote.id, title: newTitle })
-  }
 
   if (!activeNote) {
     return (
@@ -127,11 +145,6 @@ export function Editor() {
   return (
     <div>
       {isLoading && <LoadingBar />}
-      <EditorHeader
-        title={activeNote.frontmatter.title}
-        onTitleChange={handleTitleChange}
-        onEnter={() => editor?.commands.focus()}
-      />
       <EditorContent editor={editor} />
     </div>
   )
