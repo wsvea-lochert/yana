@@ -29,9 +29,10 @@ mac:
         - x64
         - arm64
   icon: resources/icon.icns
-  hardenedRuntime: true
+  hardenedRuntime: false
   gatekeeperAssess: false
   notarize: false
+  identity: null
 win:
   target:
     - target: nsis
