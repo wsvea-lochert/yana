@@ -14,8 +14,8 @@ jobs:
   version:
     runs-on: ubuntu-latest
     outputs:
-      new_tag: ${{ steps.bump.outputs.new_tag }}
-      new_version: ${{ steps.bump.outputs.new_version }}
+      tag: ${{ steps.bump.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,9 +30,17 @@ jobs:
           WITH_V: true
           RELEASE_BRANCHES: main
 
+      - name: Extract version number
+        id: version
+        run: |
+          TAG="${{ steps.bump.outputs.tag || steps.bump.outputs.new_tag }}"
+          VERSION="${TAG#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: ${VERSION}"
+
   build-mac:
     needs: version
-    if: needs.version.outputs.new_tag != ''
+    if: needs.version.outputs.version != ''
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +53,7 @@ jobs:
       - run: npm ci
 
       - name: Set version
-        run: npm version "${{ needs.version.outputs.new_version }}" --no-git-tag-version --allow-same-version
+        run: npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Build app
         run: npm run build
@@ -65,7 +73,7 @@ jobs:
 
   build-win:
     needs: version
-    if: needs.version.outputs.new_tag != ''
+    if: needs.version.outputs.version != ''
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -78,7 +86,7 @@ jobs:
       - run: npm ci
 
       - name: Set version
-        run: npm version "${{ needs.version.outputs.new_version }}" --no-git-tag-version --allow-same-version
+        run: npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Build app
         run: npm run build
