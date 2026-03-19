@@ -2,6 +2,7 @@
   "name": "pnot",
   "version": "0.1.0",
   "description": "Keyboard-first personal knowledge capture tool",
+  "author": "wsvea-lochert",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
