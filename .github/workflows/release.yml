@@ -58,15 +58,39 @@ jobs:
       - name: Build app
         run: npm run build
 
-      - name: Package & publish
+      - name: Package & publish (signed, no notarization)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: npx electron-builder --mac --publish always
+        timeout-minutes: 20
+
+      - name: Set up notarization key
+        if: env.APPLE_API_KEY != ''
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+        run: |
+          mkdir -p ~/private_keys
+          echo "$APPLE_API_KEY" > ~/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+
+      - name: Notarize
+        continue-on-error: true
+        if: env.APPLE_API_KEY_ID != ''
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          for f in dist/*.dmg dist/*.zip; do
+            [ -f "$f" ] || continue
+            echo "Notarizing $f..."
+            xcrun notarytool submit "$f" \
+              --key ~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8 \
+              --key-id "$APPLE_API_KEY_ID" \
+              --issuer "$APPLE_API_ISSUER" \
+              --wait --timeout 10m || echo "Notarization failed for $f (non-blocking)"
+            xcrun stapler staple "$f" 2>/dev/null || true
+          done
 
       - uses: actions/upload-artifact@v4
         with:
