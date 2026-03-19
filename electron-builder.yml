@@ -1,5 +1,5 @@
-appId: com.quicknote.app
-productName: QuickNote
+appId: com.pnot.app
+productName: PNOT
 directories:
   buildResources: resources
   output: dist
@@ -13,6 +13,10 @@ files:
 asarUnpack:
   - '**/*.node'
   - '**/better-sqlite3/**'
+publish:
+  provider: github
+  owner: wsvea-lochert
+  repo: pnot
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   target:
@@ -20,9 +24,27 @@ mac:
       arch:
         - x64
         - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
   icon: resources/icon.icns
   hardenedRuntime: true
   gatekeeperAssess: false
+  notarize: false
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+  icon: resources/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
 linux:
   target:
     - AppImage
