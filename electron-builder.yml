@@ -1,0 +1,29 @@
+appId: com.quicknote.app
+productName: QuickNote
+directories:
+  buildResources: resources
+  output: dist
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.*'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc,.editorconfig}'
+  - '!{tsconfig.json,tsconfig.node.json}'
+  - '!{tests,vitest.config.ts}'
+asarUnpack:
+  - '**/*.node'
+  - '**/better-sqlite3/**'
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: resources/icon.icns
+  hardenedRuntime: true
+  gatekeeperAssess: false
+linux:
+  target:
+    - AppImage
+  icon: resources
