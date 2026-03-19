@@ -16,5 +16,7 @@ export const CHANNELS = Object.freeze({
   THEME_CHANGED: 'theme:changed',
   UPDATE_OVERLAY_HOTKEY: 'hotkey:updateOverlay',
   HOTKEY_START_RECORDING: 'hotkey:startRecording',
-  HOTKEY_RECORDED: 'hotkey:recorded'
+  HOTKEY_RECORDED: 'hotkey:recorded',
+  NOTE_SAVED: 'note:saved',
+  SHELL_SHOW_IN_FOLDER: 'shell:showInFolder'
 } as const)

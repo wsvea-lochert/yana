@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AppLayout } from './components/Layout/AppLayout'
 import { CommandPalette } from './components/CommandPalette/CommandPalette'
 import { SettingsDialog } from './components/Settings/SettingsDialog'
+import { DeleteNoteDialog } from './components/shared/DeleteNoteDialog'
 import { Toast } from './components/shared/Toast'
 import { useNoteStore } from './stores/note.store'
 import { useUiStore } from './stores/ui.store'
@@ -25,6 +26,13 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = window.api.on.vaultChanged(() => {
+      refreshFromVault()
+    })
+    return unsubscribe
+  }, [refreshFromVault])
+
+  useEffect(() => {
+    const unsubscribe = window.api.on.noteSaved(() => {
       refreshFromVault()
     })
     return unsubscribe
@@ -80,6 +88,14 @@ export default function App() {
         })
       }
 
+      if (mod && e.key === 'Backspace') {
+        e.preventDefault()
+        const { activeNoteId } = useNoteStore.getState()
+        if (activeNoteId) {
+          useUiStore.getState().setPendingDeleteNoteId(activeNoteId)
+        }
+      }
+
       if (mod && e.key === ',') {
         e.preventDefault()
         setSettingsOpen(true)
@@ -125,6 +141,7 @@ export default function App() {
       <AppLayout />
       <CommandPalette onOpenSettings={() => setSettingsOpen(true)} />
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <DeleteNoteDialog />
       <Toast />
     </>
   )

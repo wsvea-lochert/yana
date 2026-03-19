@@ -14,6 +14,7 @@ interface UiState {
   readonly sortBy: SortBy
   readonly sortDirection: SortDirection
   readonly modifierHeld: boolean
+  readonly pendingDeleteNoteId: string | null
 }
 
 interface UiActions {
@@ -27,6 +28,7 @@ interface UiActions {
   setSortBy: (sortBy: SortBy) => void
   toggleSortDirection: () => void
   setModifierHeld: (held: boolean) => void
+  setPendingDeleteNoteId: (id: string | null) => void
 }
 
 export type UiStore = UiState & UiActions
@@ -44,6 +46,7 @@ export const useUiStore = create<UiStore>((set, get) => ({
   sortBy: 'modified',
   sortDirection: 'desc',
   modifierHeld: false,
+  pendingDeleteNoteId: null,
 
   toggleSidebar: () => set({ sidebarVisible: !get().sidebarVisible }),
 
@@ -84,5 +87,7 @@ export const useUiStore = create<UiStore>((set, get) => ({
   toggleSortDirection: () =>
     set({ sortDirection: get().sortDirection === 'asc' ? 'desc' : 'asc' }),
 
-  setModifierHeld: (held: boolean) => set({ modifierHeld: held })
+  setModifierHeld: (held: boolean) => set({ modifierHeld: held }),
+
+  setPendingDeleteNoteId: (id: string | null) => set({ pendingDeleteNoteId: id })
 }))

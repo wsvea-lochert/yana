@@ -22,6 +22,9 @@ export interface QuickNoteApi {
     updateOverlay: (hotkey: string) => Promise<{ success: boolean; current: string; error?: string }>
     startRecording: () => Promise<void>
   }
+  shell: {
+    showInFolder: (noteId: string) => Promise<void>
+  }
   on: {
     vaultChanged: (callback: (metadata: NoteMetadata) => void) => () => void
     overlayShown: (callback: () => void) => () => void
@@ -32,6 +35,7 @@ export interface QuickNoteApi {
     toggleFocusMode: (callback: () => void) => () => void
     toggleTheme: (callback: () => void) => () => void
     hotkeyRecorded: (callback: (accelerator: string) => void) => () => void
+    noteSaved: (callback: (metadata: NoteMetadata) => void) => () => void
   }
 }
 
