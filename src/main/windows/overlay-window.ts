@@ -5,6 +5,7 @@ import { OVERLAY_WIDTH, OVERLAY_HEIGHT } from '@shared/constants/defaults'
 import { CHANNELS } from '@shared/constants/channels'
 
 let savedPosition: { x: number; y: number } | null = null
+let overlayInstance: BrowserWindow | null = null
 
 export function buildOverlayWindowOptions(): Electron.BrowserWindowConstructorOptions {
   return {
@@ -40,40 +41,67 @@ function centerOnScreen(window: BrowserWindow): void {
   window.setPosition(x, y)
 }
 
-export function createOverlayWindow(): BrowserWindow {
-  const window = new BrowserWindow(buildOverlayWindowOptions())
-
+function loadOverlayContent(window: BrowserWindow): void {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     window.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/overlay/overlay.html`)
   } else {
     window.loadFile(join(__dirname, '../renderer/overlay/overlay.html'))
   }
+}
+
+export function createOverlayWindow(): BrowserWindow {
+  const window = new BrowserWindow(buildOverlayWindowOptions())
+  loadOverlayContent(window)
 
   window.on('moved', () => {
-    const [x, y] = window.getPosition()
-    savedPosition = { x, y }
+    if (!window.isDestroyed()) {
+      const [x, y] = window.getPosition()
+      savedPosition = { x, y }
+    }
+  })
+
+  window.on('close', (e) => {
+    // Prevent destruction — just hide instead
+    e.preventDefault()
+    window.hide()
   })
 
   if (!is.dev) {
     window.on('blur', () => {
-      hideOverlay(window)
+      if (!window.isDestroyed()) {
+        window.hide()
+      }
     })
   }
 
+  overlayInstance = window
   return window
 }
 
+function ensureOverlay(window: BrowserWindow): BrowserWindow {
+  if (!window.isDestroyed()) return window
+
+  // Recreate if somehow destroyed
+  const newWindow = new BrowserWindow(buildOverlayWindowOptions())
+  loadOverlayContent(newWindow)
+  overlayInstance = newWindow
+  return newWindow
+}
+
 export function showOverlay(window: BrowserWindow): void {
+  const win = ensureOverlay(window)
   if (savedPosition) {
-    window.setPosition(savedPosition.x, savedPosition.y)
+    win.setPosition(savedPosition.x, savedPosition.y)
   } else {
-    centerOnScreen(window)
+    centerOnScreen(win)
   }
-  window.show()
-  window.focus()
-  window.webContents.send(CHANNELS.OVERLAY_SHOWN)
+  win.show()
+  win.focus()
+  win.webContents.send(CHANNELS.OVERLAY_SHOWN)
 }
 
 export function hideOverlay(window: BrowserWindow): void {
-  window.hide()
+  if (!window.isDestroyed()) {
+    window.hide()
+  }
 }
