@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, type BrowserWindow } from 'electron'
 import { CHANNELS } from '@shared/constants/channels'
 import type { VaultService } from '../services/vault.service'
 import type { IndexService } from '../services/index.service'
@@ -8,7 +8,8 @@ import type { CreateNoteInput, UpdateNoteInput } from '@shared/types/note'
 export function registerNoteHandlers(
   vaultService: VaultService,
   indexService: IndexService,
-  searchService: SearchService
+  searchService: SearchService,
+  mainWindow: BrowserWindow
 ): void {
   ipcMain.handle(CHANNELS.NOTE_LIST, async () => {
     try {
@@ -35,6 +36,7 @@ export function registerNoteHandlers(
         const allNotes = await vaultService.listNotes()
         searchService.rebuildFuseIndex(allNotes)
       }
+      mainWindow.webContents.send(CHANNELS.NOTE_SAVED, metadata)
       return metadata
     } catch (error) {
       throw new Error(`Failed to create note: ${error instanceof Error ? error.message : String(error)}`)
@@ -50,6 +52,7 @@ export function registerNoteHandlers(
         const allNotes = await vaultService.listNotes()
         searchService.rebuildFuseIndex(allNotes)
       }
+      mainWindow.webContents.send(CHANNELS.NOTE_SAVED, metadata)
       return metadata
     } catch (error) {
       throw new Error(`Failed to update note: ${error instanceof Error ? error.message : String(error)}`)

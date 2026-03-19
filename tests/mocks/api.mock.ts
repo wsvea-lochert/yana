@@ -41,6 +41,9 @@ export function createMockApi(): QuickNoteApi {
       updateOverlay: vi.fn().mockResolvedValue({ success: true, current: 'Alt+Shift+Space' }),
       startRecording: vi.fn().mockResolvedValue(undefined)
     },
+    shell: {
+      showInFolder: vi.fn().mockResolvedValue(undefined)
+    },
     on: {
       vaultChanged: vi.fn().mockReturnValue(() => {}),
       overlayShown: vi.fn().mockReturnValue(() => {}),
@@ -50,7 +53,8 @@ export function createMockApi(): QuickNoteApi {
       toggleSidebar: vi.fn().mockReturnValue(() => {}),
       toggleFocusMode: vi.fn().mockReturnValue(() => {}),
       toggleTheme: vi.fn().mockReturnValue(() => {}),
-      hotkeyRecorded: vi.fn().mockReturnValue(() => {})
+      hotkeyRecorded: vi.fn().mockReturnValue(() => {}),
+      noteSaved: vi.fn().mockReturnValue(() => {})
     }
   }
 }

@@ -4,16 +4,29 @@
   outline: none;
 }
 
-.ProseMirror p.is-editor-empty:first-child::before {
+/* Paragraph placeholder */
+.ProseMirror .is-empty::before,
+.ProseMirror .is-editor-empty::before {
   content: attr(data-placeholder);
   float: left;
-  color: color-mix(in srgb, var(--color-ink) 25%, transparent);
+  color: currentColor;
+  opacity: 0.15;
   pointer-events: none;
   height: 0;
   font-style: italic;
 }
 
-.dark .ProseMirror p.is-editor-empty:first-child::before {
+/* Heading placeholder (not italic) */
+.ProseMirror h1.is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: color-mix(in srgb, var(--color-ink) 25%, transparent);
+  pointer-events: none;
+  height: 0;
+  font-style: normal;
+}
+
+.dark .ProseMirror h1.is-empty::before {
   color: color-mix(in srgb, var(--color-warm-white) 25%, transparent);
 }
 
@@ -27,6 +40,28 @@
   letter-spacing: -0.01em;
 }
 
+/* First-child H1 = note title */
+.ProseMirror > h1:first-child {
+  font-family: var(--font-ui);
+  font-size: 2.25rem;
+  line-height: 1.2;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: none;
+  position: relative;
+}
+
+.ProseMirror > h1:first-child::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.15;
+  margin-top: 0.5rem;
+}
+
+/* Regular H1s (not the title) */
 .ProseMirror h1 {
   font-size: 2rem;
   line-height: 1.2;
@@ -91,14 +126,14 @@
 }
 
 /* Horizontal rule */
-.ProseMirror hr {
-  border: none;
-  border-top: 1px solid var(--color-border);
+.ProseMirror hr,
+.prose hr {
+  border: none !important;
+  background: none !important;
+  height: 1px !important;
   margin: 2rem 0;
-}
-
-.dark .ProseMirror hr {
-  border-top-color: var(--color-dark-border);
+  opacity: 0.15;
+  background-color: currentColor !important;
 }
 
 /* Lists */
