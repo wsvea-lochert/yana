@@ -8,15 +8,6 @@ import {
   CommandGroup,
   CommandItem
 } from '@/components/ui/command'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { useNoteStore } from '../../stores/note.store'
 import { useUiStore } from '../../stores/ui.store'
 import type { SearchResult } from '@shared/types/search'
@@ -30,13 +21,12 @@ export function CommandPalette({ onOpenSettings }: CommandPaletteProps) {
   const setOpen = useUiStore((s) => s.setCommandPaletteOpen)
   const selectNote = useNoteStore((s) => s.selectNote)
   const createNote = useNoteStore((s) => s.createNote)
-  const deleteNote = useNoteStore((s) => s.deleteNote)
   const activeNoteId = useNoteStore((s) => s.activeNoteId)
   const activeNote = useNoteStore((s) => s.activeNote)
+  const setPendingDeleteNoteId = useUiStore((s) => s.setPendingDeleteNoteId)
 
   const [searchValue, setSearchValue] = useState('')
   const [results, setResults] = useState<readonly SearchResult[]>([])
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const doSearch = useCallback(async (term: string) => {
     if (!term.trim()) {
@@ -74,20 +64,14 @@ export function CommandPalette({ onOpenSettings }: CommandPaletteProps) {
   }
 
   function handleDeleteCurrent() {
-    setShowDeleteConfirm(true)
-  }
-
-  async function confirmDelete() {
     if (activeNoteId) {
-      await deleteNote(activeNoteId)
+      setPendingDeleteNoteId(activeNoteId)
     }
-    setShowDeleteConfirm(false)
     handleClose()
   }
 
   return (
-    <>
-      <CommandDialog open={open} onOpenChange={setOpen}>
+    <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
           value={searchValue}
           onValueChange={setSearchValue}
@@ -142,28 +126,6 @@ export function CommandPalette({ onOpenSettings }: CommandPaletteProps) {
             </CommandItem>
           </CommandGroup>
         </CommandList>
-      </CommandDialog>
-
-      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete note</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &ldquo;
-              {activeNote?.frontmatter.title ?? 'this note'}
-              &rdquo;? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    </CommandDialog>
   )
 }

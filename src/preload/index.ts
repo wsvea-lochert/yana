@@ -32,6 +32,9 @@ const api: QuickNoteApi = {
       ipcRenderer.invoke(CHANNELS.UPDATE_OVERLAY_HOTKEY, hotkey),
     startRecording: () => ipcRenderer.invoke(CHANNELS.HOTKEY_START_RECORDING)
   },
+  shell: {
+    showInFolder: (noteId: string) => ipcRenderer.invoke(CHANNELS.SHELL_SHOW_IN_FOLDER, noteId)
+  },
   on: {
     vaultChanged: (callback) => onChannel(CHANNELS.VAULT_CHANGED, (data) =>
       callback(data as Parameters<typeof callback>[0])
@@ -49,6 +52,9 @@ const api: QuickNoteApi = {
     toggleTheme: (callback) => onChannel('toggle-theme', () => callback()),
     hotkeyRecorded: (callback) => onChannel(CHANNELS.HOTKEY_RECORDED, (accel) =>
       callback(accel as string)
+    ),
+    noteSaved: (callback) => onChannel(CHANNELS.NOTE_SAVED, (data) =>
+      callback(data as Parameters<typeof callback>[0])
     )
   }
 }

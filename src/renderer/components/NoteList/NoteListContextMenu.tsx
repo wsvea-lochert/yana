@@ -1,54 +1,48 @@
-import { useEffect, useRef } from 'react'
-import { cn } from '@/lib/utils'
+import { Trash2, FolderOpen } from 'lucide-react'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuGroup,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuShortcut,
+  ContextMenuTrigger
+} from '@/components/ui/context-menu'
 
 interface NoteListContextMenuProps {
-  readonly x: number
-  readonly y: number
   readonly onDelete: () => void
-  readonly onClose: () => void
+  readonly onShowInFinder: () => void
+  readonly children: React.ReactNode
 }
 
-export function NoteListContextMenu({ x, y, onDelete, onClose }: NoteListContextMenuProps) {
-  const menuRef = useRef<HTMLDivElement>(null)
+const isMac = navigator.platform.includes('Mac')
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose()
-      }
-    }
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('mousedown', handleClickOutside)
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.removeEventListener('mousedown', handleClickOutside)
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [onClose])
-
+export function NoteListContextMenu({
+  onDelete,
+  onShowInFinder,
+  children
+}: NoteListContextMenuProps) {
   return (
-    <div
-      ref={menuRef}
-      className={cn(
-        'fixed z-[150] min-w-[160px] rounded-md border bg-popover p-1 text-popover-foreground shadow-md'
-      )}
-      style={{ left: x, top: y }}
-    >
-      <button
-        onClick={() => {
-          onDelete()
-          onClose()
-        }}
-        className={cn(
-          'relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors',
-          'hover:bg-accent hover:text-accent-foreground',
-          'text-destructive'
-        )}
-      >
-        Delete note
-      </button>
-    </div>
+    <ContextMenu>
+      <ContextMenuTrigger className="block">
+        {children}
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-48">
+        <ContextMenuGroup>
+          <ContextMenuItem className="gap-2" onClick={onShowInFinder}>
+            <FolderOpen className="h-4 w-4" />
+            {isMac ? 'Show in Finder' : 'Show in Explorer'}
+          </ContextMenuItem>
+        </ContextMenuGroup>
+        <ContextMenuSeparator />
+        <ContextMenuGroup>
+          <ContextMenuItem className="gap-2 text-destructive focus:text-destructive" onClick={onDelete}>
+            <Trash2 className="h-4 w-4" />
+            Delete note
+            <ContextMenuShortcut>{isMac ? '\u2318' : 'Ctrl'} + {'\u232B'}</ContextMenuShortcut>
+          </ContextMenuItem>
+        </ContextMenuGroup>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }

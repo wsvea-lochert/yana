@@ -132,8 +132,17 @@ export function createVaultService(vaultPath: string): VaultService {
 
     const slug = titleToSlug(validated.title)
     const now = toISOString()
-    const filename = `${slug}.md`
-    const filePath = join(vaultPath, filename)
+
+    let filename = `${slug}.md`
+    let filePath = join(vaultPath, filename)
+    let uniqueSlug = slug
+    let counter = 1
+    while (existsSync(filePath)) {
+      uniqueSlug = `${slug}-${counter}`
+      filename = `${uniqueSlug}.md`
+      filePath = join(vaultPath, filename)
+      counter++
+    }
 
     const frontmatterData = {
       title: validated.title,
@@ -148,7 +157,7 @@ export function createVaultService(vaultPath: string): VaultService {
     await writeFile(filePath, fileContent, 'utf-8')
 
     return {
-      id: slug,
+      id: uniqueSlug,
       filename,
       title: validated.title,
       created: now,
