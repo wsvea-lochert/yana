@@ -1,0 +1,20 @@
+export const CHANNELS = Object.freeze({
+  NOTE_LIST: 'note:list',
+  NOTE_GET: 'note:get',
+  NOTE_CREATE: 'note:create',
+  NOTE_UPDATE: 'note:update',
+  NOTE_DELETE: 'note:delete',
+  SEARCH_QUERY: 'search:query',
+  SEARCH_QUICK: 'search:quick',
+  CONFIG_GET: 'config:get',
+  CONFIG_SET: 'config:set',
+  CONFIG_GET_VAULT_PATH: 'config:getVaultPath',
+  OVERLAY_HIDE: 'overlay:hide',
+  VAULT_CHANGED: 'vault:changed',
+  OVERLAY_SHOWN: 'overlay:shown',
+  OVERLAY_NAVIGATE: 'overlay:navigate',
+  THEME_CHANGED: 'theme:changed',
+  UPDATE_OVERLAY_HOTKEY: 'hotkey:updateOverlay',
+  HOTKEY_START_RECORDING: 'hotkey:startRecording',
+  HOTKEY_RECORDED: 'hotkey:recorded'
+} as const)
