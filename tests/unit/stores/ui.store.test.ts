@@ -3,7 +3,10 @@ import { createMockApi } from '../../mocks/api.mock'
 
 const mockApi = createMockApi()
 
-vi.stubGlobal('window', { api: mockApi })
+vi.stubGlobal('window', {
+  api: mockApi,
+  matchMedia: vi.fn().mockReturnValue({ matches: false })
+})
 vi.stubGlobal('document', {
   documentElement: {
     classList: {
