@@ -3,36 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@font-face {
-  font-family: 'Newsreader';
-  src: url('./fonts/Newsreader-Variable.woff2') format('woff2');
-  font-weight: 200 800;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Literata';
-  src: url('./fonts/Literata-Variable.woff2') format('woff2');
-  font-weight: 200 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'JetBrains Mono';
-  src: url('./fonts/JetBrainsMono-Variable.woff2') format('woff2');
-  font-weight: 100 800;
-  font-style: normal;
-  font-display: swap;
-}
-
 @theme {
   /* Typography */
-  --font-display: 'Newsreader', Georgia, serif;
-  --font-body: 'Literata', Georgia, serif;
+  --font-display: 'Figtree Variable', 'Figtree', system-ui, sans-serif;
+  --font-body: 'Figtree Variable', 'Figtree', system-ui, sans-serif;
   --font-ui: 'Figtree Variable', 'Figtree', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 
   /* Motion */
   --ease-out-snappy: cubic-bezier(0.16, 1, 0.3, 1);

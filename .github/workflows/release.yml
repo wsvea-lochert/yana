@@ -45,6 +45,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Use prod icon
+        run: cp src/renderer/assets/pnot_prod_icons/pnot_prod-iOS-Default-1024x1024@1x.png resources/icon.png
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -70,9 +73,11 @@ jobs:
         if: env.APPLE_API_KEY != ''
         env:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
         run: |
+          echo "::add-mask::${APPLE_API_KEY_ID}"
           mkdir -p ~/private_keys
-          echo "$APPLE_API_KEY" > ~/private_keys/AuthKey_${{ secrets.APPLE_API_KEY_ID }}.p8
+          printenv APPLE_API_KEY > ~/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8
 
       - name: Notarize
         continue-on-error: true
@@ -81,6 +86,8 @@ jobs:
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
+          echo "::add-mask::${APPLE_API_KEY_ID}"
+          echo "::add-mask::${APPLE_API_ISSUER}"
           for f in dist/*.dmg dist/*.zip; do
             [ -f "$f" ] || continue
             echo "Notarizing $f..."
@@ -106,6 +113,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Use prod icon
+        run: copy src\renderer\assets\pnot_prod_icons\pnot_prod-iOS-Default-1024x1024@1x.png resources\icon.png
 
       - uses: actions/setup-node@v4
         with:
