@@ -1,4 +1,4 @@
-export const DEFAULT_HOTKEY = 'Alt+Shift+Space'
+export const DEFAULT_HOTKEY = 'CommandOrControl+='
 export const NEW_NOTE_HOTKEY = 'Alt+Shift+N'
 
 export const DEFAULT_THEME = 'light' as const
