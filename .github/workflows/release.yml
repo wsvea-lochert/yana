@@ -37,9 +37,9 @@ jobs:
           if [ -n "$TAG" ]; then
             VERSION="${TAG#v}"
           else
-            VERSION="$(node -p "require('./package.json').version")"
+            VERSION="$(node -e "try{const v=require('./package.json').version||'';process.stdout.write(v)}catch(e){process.stderr.write('Failed to read version from package.json\n');process.exit(2)}")"
           fi
-          [ -n "$VERSION" ] || { echo "Unable to resolve app version"; exit 1; }
+          [ -n "$VERSION" ] || { echo "Unable to resolve app version from tag output or package.json" >&2; exit 1; }
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Resolved version: ${VERSION}"
 
