@@ -22,7 +22,7 @@ export function initializeApp(): void {
       const iconPath = join(__dirname, '../../resources/icon.png')
       const icon = nativeImage.createFromPath(iconPath)
       if (!icon.isEmpty()) {
-        app.dock.setIcon(icon)
+        app.dock?.setIcon(icon)
       }
     }
 
