@@ -14,7 +14,7 @@ jobs:
   version:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.bump.outputs.tag }}
+      tag: ${{ steps.bump.outputs.tag || steps.bump.outputs.new_tag }}
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +34,12 @@ jobs:
         id: version
         run: |
           TAG="${{ steps.bump.outputs.tag || steps.bump.outputs.new_tag }}"
-          VERSION="${TAG#v}"
+          if [ -n "$TAG" ]; then
+            VERSION="${TAG#v}"
+          else
+            VERSION="$(node -p "require('./package.json').version")"
+          fi
+          [ -n "$VERSION" ] || { echo "Unable to resolve app version"; exit 1; }
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Resolved version: ${VERSION}"
 
