@@ -1,6 +1,7 @@
 {
   "name": "pnot",
   "version": "0.1.0",
+  "private": true,
   "description": "Keyboard-first personal knowledge capture tool",
   "author": "wsvea-lochert",
   "main": "./out/main/index.js",
@@ -69,8 +70,8 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "electron": "^34.2.0",
-    "electron-builder": "^25.1.8",
+    "electron": "^35.7.5",
+    "electron-builder": "^26.8.1",
     "electron-vite": "^3.0.0",
     "eslint": "^9.18.0",
     "jsdom": "^26.0.0",

@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, nativeImage } from 'electron'
 import { createMainWindow } from './windows/main-window'
 import { createOverlayWindow, showOverlay, hideOverlay } from './windows/overlay-window'
 import { createTray } from './tray'
@@ -14,9 +14,18 @@ import { createDatabase } from './db/database'
 import { runMigrations } from './db/migrations'
 import { CHANNELS } from '@shared/constants/channels'
 import { join } from 'path'
+import { is } from '@electron-toolkit/utils'
 
 export function initializeApp(): void {
   app.whenReady().then(async () => {
+    if (is.dev && process.platform === 'darwin') {
+      const iconPath = join(__dirname, '../../resources/icon.png')
+      const icon = nativeImage.createFromPath(iconPath)
+      if (!icon.isEmpty()) {
+        app.dock.setIcon(icon)
+      }
+    }
+
     const home = process.env.HOME ?? process.env.USERPROFILE ?? '.'
     const vaultPath = join(home, 'QuickNote')
     const dbPath = join(app.getPath('userData'), 'quicknote.db')

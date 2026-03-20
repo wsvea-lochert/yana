@@ -28,7 +28,7 @@ mac:
       arch:
         - x64
         - arm64
-  icon: resources/icon.icns
+  icon: resources/icon.png
   hardenedRuntime: true
   gatekeeperAssess: false
 win:
@@ -39,7 +39,7 @@ win:
     - target: zip
       arch:
         - x64
-  icon: resources/icon.ico
+  icon: resources/icon.png
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
@@ -47,4 +47,4 @@ nsis:
 linux:
   target:
     - AppImage
-  icon: resources
+  icon: resources/icon.png

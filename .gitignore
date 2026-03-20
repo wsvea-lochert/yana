@@ -6,3 +6,24 @@ dist/
 *.env
 *.env.local
 coverage/
+
+# Secrets & certs
+*.pem
+*.key
+*.cert
+*.p12
+*.pfx
+
+# Config with potential tokens
+.npmrc
+
+# Database files
+*.sqlite
+*.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
