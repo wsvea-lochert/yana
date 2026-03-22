@@ -31,3 +31,30 @@ export function initAutoUpdater(): void {
 
   autoUpdater.checkForUpdatesAndNotify()
 }
+
+export function checkForUpdates(): void {
+  if (is.dev) {
+    const mainWindow = BrowserWindow.getAllWindows().find((w) => !w.isAlwaysOnTop())
+    const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined
+    dialog.showMessageBox({
+      ...(parent ? { window: parent } : {}),
+      type: 'info',
+      title: 'Updates',
+      message: 'Update checking is disabled in development.'
+    })
+    return
+  }
+
+  autoUpdater.once('update-not-available', () => {
+    const mainWindow = BrowserWindow.getAllWindows().find((w) => !w.isAlwaysOnTop())
+    const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined
+    dialog.showMessageBox({
+      ...(parent ? { window: parent } : {}),
+      type: 'info',
+      title: 'No Updates',
+      message: 'You are running the latest version.'
+    })
+  })
+
+  autoUpdater.checkForUpdatesAndNotify()
+}
