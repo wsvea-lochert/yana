@@ -1,5 +1,6 @@
 import { app, Menu, BrowserWindow, shell } from 'electron'
 import { CHANNELS } from '@shared/constants/channels'
+import { checkForUpdates } from './auto-updater'
 
 export function createAppMenu(mainWindow: BrowserWindow): void {
   const isMac = process.platform === 'darwin'
@@ -11,6 +12,10 @@ export function createAppMenu(mainWindow: BrowserWindow): void {
             label: 'Yana',
             submenu: [
               { role: 'about' as const },
+              {
+                label: 'Check for Updates...',
+                click: () => checkForUpdates()
+              },
               { type: 'separator' as const },
               {
                 label: 'Settings...',
