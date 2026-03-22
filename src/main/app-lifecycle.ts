@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, nativeImage } from 'electron'
 import { createMainWindow } from './windows/main-window'
 import { createOverlayWindow, showOverlay, hideOverlay } from './windows/overlay-window'
 import { createTray } from './tray'
@@ -22,6 +22,14 @@ export function initializeApp(): void {
   app.whenReady().then(async () => {
     if (is.dev) {
       app.setName('Yana (Dev)')
+
+      if (process.platform === 'darwin') {
+        const iconPath = join(__dirname, '../../src/renderer/assets/yana_dev.png')
+        const icon = nativeImage.createFromPath(iconPath)
+        if (!icon.isEmpty()) {
+          app.dock?.setIcon(icon)
+        }
+      }
     }
 
     const home = process.env.HOME ?? process.env.USERPROFILE ?? '.'
