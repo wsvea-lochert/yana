@@ -64,7 +64,8 @@
   }
 }
 
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -196,15 +197,27 @@ body {
 }
 
 /* Lists */
-.overlay-prose ul,
+.overlay-prose ul {
+  padding-left: 1.25rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  list-style-type: disc;
+}
+
 .overlay-prose ol {
   padding-left: 1.25rem;
   margin-top: 0.25rem;
   margin-bottom: 0.25rem;
+  list-style-type: decimal;
 }
 
 .overlay-prose li {
   margin-bottom: 0.125rem;
+}
+
+.overlay-prose li::marker {
+  color: currentColor;
+  opacity: 0.5;
 }
 
 /* Horizontal rules */
@@ -247,32 +260,51 @@ body {
 
 .overlay-prose .hljs-keyword,
 .overlay-prose .hljs-selector-tag,
-.overlay-prose .hljs-built_in { color: var(--hljs-keyword); }
+.overlay-prose .hljs-built_in {
+  color: var(--hljs-keyword);
+}
 
 .overlay-prose .hljs-string,
-.overlay-prose .hljs-addition { color: var(--hljs-string); }
+.overlay-prose .hljs-addition {
+  color: var(--hljs-string);
+}
 
 .overlay-prose .hljs-number,
-.overlay-prose .hljs-literal { color: var(--hljs-number); }
+.overlay-prose .hljs-literal {
+  color: var(--hljs-number);
+}
 
 .overlay-prose .hljs-comment,
-.overlay-prose .hljs-quote { color: var(--hljs-comment); font-style: italic; }
+.overlay-prose .hljs-quote {
+  color: var(--hljs-comment);
+  font-style: italic;
+}
 
 .overlay-prose .hljs-tag,
 .overlay-prose .hljs-attr,
-.overlay-prose .hljs-attribute { color: var(--hljs-tag); }
+.overlay-prose .hljs-attribute {
+  color: var(--hljs-tag);
+}
 
 .overlay-prose .hljs-name,
 .overlay-prose .hljs-selector-class,
 .overlay-prose .hljs-variable,
-.overlay-prose .hljs-template-variable { color: var(--hljs-name); }
+.overlay-prose .hljs-template-variable {
+  color: var(--hljs-name);
+}
 
 .overlay-prose .hljs-type,
-.overlay-prose .hljs-title { color: var(--hljs-type); }
+.overlay-prose .hljs-title {
+  color: var(--hljs-type);
+}
 
-.overlay-prose .hljs-deletion { color: var(--hljs-deletion); }
+.overlay-prose .hljs-deletion {
+  color: var(--hljs-deletion);
+}
 
-.overlay-prose .hljs-function { color: var(--hljs-tag); }
+.overlay-prose .hljs-function {
+  color: var(--hljs-tag);
+}
 
 /* ── Thin scrollbar for editor area ── */
 .overlay-editor-scroll {
