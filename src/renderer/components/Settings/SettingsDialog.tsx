@@ -1,11 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Sun, Moon, Monitor, FolderOpen, Keyboard } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { Kbd } from '@/components/ui/kbd'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -39,13 +34,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const setTheme = useUiStore((s) => s.setTheme)
   const [themeMode, setThemeMode] = useState<ThemeMode>('system')
   const [vaultPath, setVaultPath] = useState('')
-  const [overlayHotkey, setOverlayHotkey] = useState('Alt+Shift+Space')
+  const [overlayHotkey, setOverlayHotkey] = useState('CommandOrControl+=')
   const [isRecording, setIsRecording] = useState(false)
   const [hotkeyError, setHotkeyError] = useState('')
 
   useEffect(() => {
     if (open) {
-      window.api.config.getVaultPath().then(setVaultPath).catch(() => {})
+      window.api.config
+        .getVaultPath()
+        .then(setVaultPath)
+        .catch(() => {})
       window.api.config
         .get('themeMode')
         .then((stored) => {
@@ -85,7 +83,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           setOverlayHotkey(accel)
           await window.api.config.set('overlayHotkey', accel)
         } else {
-          setHotkeyError(result.error ?? 'Could not register this shortcut. It may be in use by the system.')
+          setHotkeyError(
+            result.error ?? 'Could not register this shortcut. It may be in use by the system.'
+          )
         }
       } catch {
         setHotkeyError('Failed to update shortcut.')
@@ -198,16 +198,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                     : 'border-input bg-background hover:bg-accent'
                 )}
               >
-                {isRecording ? (
-                  'Press shortcut...'
-                ) : (
-                  <Kbd>{formatAccelerator(overlayHotkey)}</Kbd>
-                )}
+                {isRecording ? 'Press shortcut...' : <Kbd>{formatAccelerator(overlayHotkey)}</Kbd>}
               </button>
             </div>
-            {hotkeyError && (
-              <p className="text-xs text-destructive mt-2">{hotkeyError}</p>
-            )}
+            {hotkeyError && <p className="text-xs text-destructive mt-2">{hotkeyError}</p>}
           </div>
 
           <Separator />

@@ -20,11 +20,15 @@ import { initAutoUpdater } from './auto-updater'
 
 export function initializeApp(): void {
   app.whenReady().then(async () => {
-    if (is.dev && process.platform === 'darwin') {
-      const iconPath = join(__dirname, '../../resources/icon.png')
-      const icon = nativeImage.createFromPath(iconPath)
-      if (!icon.isEmpty()) {
-        app.dock?.setIcon(icon)
+    if (is.dev) {
+      app.setName('Yana (Dev)')
+
+      if (process.platform === 'darwin') {
+        const iconPath = join(__dirname, '../../resources/icon.png')
+        const icon = nativeImage.createFromPath(iconPath)
+        if (!icon.isEmpty()) {
+          app.dock?.setIcon(icon.resize({ width: 128, height: 128 }))
+        }
       }
     }
 

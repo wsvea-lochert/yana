@@ -99,7 +99,7 @@ export default function App() {
         })
       }
 
-      if (mod && e.key === 'Backspace') {
+      if (mod && e.altKey && e.key === 'Backspace') {
         e.preventDefault()
         const { activeNoteId } = useNoteStore.getState()
         if (activeNoteId) {
