@@ -15,6 +15,7 @@ import { runMigrations } from './db/migrations'
 import { CHANNELS } from '@shared/constants/channels'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
+import { initAutoUpdater } from './auto-updater'
 
 export function initializeApp(): void {
   app.whenReady().then(async () => {
@@ -110,6 +111,7 @@ export function initializeApp(): void {
     })
 
     mainWindow.show()
+    initAutoUpdater()
   })
 
   app.on('will-quit', () => {
