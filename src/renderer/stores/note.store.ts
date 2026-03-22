@@ -16,6 +16,7 @@ interface NoteActions {
   createNote: (input: CreateNoteInput) => Promise<NoteMetadata>
   updateNote: (input: UpdateNoteInput) => Promise<void>
   deleteNote: (id: string) => Promise<void>
+  moveNoteToFolder: (noteId: string, folder: string) => Promise<void>
   refreshFromVault: () => Promise<void>
 }
 
@@ -82,6 +83,21 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
       showError(`Failed to update note: ${msg}`)
+    }
+  },
+
+  moveNoteToFolder: async (noteId: string, folder: string) => {
+    try {
+      await window.api.notes.update({ id: noteId, folder })
+      await get().loadNotes()
+      const { activeNoteId } = get()
+      if (activeNoteId === noteId) {
+        const note = await window.api.notes.get(noteId)
+        set({ activeNote: note })
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error)
+      showError(`Failed to move note: ${msg}`)
     }
   },
 

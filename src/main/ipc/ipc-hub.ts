@@ -5,9 +5,11 @@ import type { IndexService } from '../services/index.service'
 import type { SearchService } from '../services/search.service'
 import type { LinksService } from '../services/links.service'
 import type { TagsService } from '../services/tags.service'
+import type { FolderService } from '../services/folder.service'
 import { registerNoteHandlers } from './note-handlers'
 import { registerSearchHandlers } from './search-handlers'
 import { registerConfigHandlers } from './config-handlers'
+import { registerFolderHandlers } from './folder-handlers'
 import { updateOverlayHotkey, getCurrentOverlayHotkey } from '../hotkeys'
 import { CHANNELS } from '@shared/constants/channels'
 
@@ -17,14 +19,21 @@ export interface Services {
   searchService: SearchService
   linksService: LinksService
   tagsService: TagsService
+  folderService: FolderService
   overlayWindow: BrowserWindow
   mainWindow: BrowserWindow
 }
 
 export function registerIpcHandlers(services: Services): void {
-  registerNoteHandlers(services.vaultService, services.indexService, services.searchService, services.mainWindow)
+  registerNoteHandlers(
+    services.vaultService,
+    services.indexService,
+    services.searchService,
+    services.mainWindow
+  )
   registerSearchHandlers(services.searchService)
   registerConfigHandlers()
+  registerFolderHandlers(services.folderService)
   registerOverlayHandler(services.overlayWindow, services.mainWindow)
   registerHotkeyHandler(services.mainWindow)
   registerShellHandlers()
@@ -44,8 +53,17 @@ function registerOverlayHandler(overlayWindow: BrowserWindow, mainWindow: Browse
 }
 
 const MODIFIER_KEYS = new Set([
-  'Meta', 'Control', 'Alt', 'Shift', 'CapsLock', 'NumLock', 'ScrollLock',
-  'meta', 'control', 'alt', 'shift'
+  'Meta',
+  'Control',
+  'Alt',
+  'Shift',
+  'CapsLock',
+  'NumLock',
+  'ScrollLock',
+  'meta',
+  'control',
+  'alt',
+  'shift'
 ])
 
 function inputToAccelerator(input: Input): string | null {
@@ -88,11 +106,36 @@ function inputToAccelerator(input: Input): string | null {
     parts.push(key.toUpperCase())
   } else if (key.startsWith('F') && /^F\d+$/.test(key)) {
     parts.push(key) // F1-F24
-  } else if (['Tab', 'Backspace', 'Delete', 'Insert', 'Home', 'End', 'PageUp', 'PageDown',
-    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Return'].includes(key)) {
-    const mapped = key === 'ArrowUp' ? 'Up' : key === 'ArrowDown' ? 'Down'
-      : key === 'ArrowLeft' ? 'Left' : key === 'ArrowRight' ? 'Right'
-      : key === 'Return' ? 'Enter' : key
+  } else if (
+    [
+      'Tab',
+      'Backspace',
+      'Delete',
+      'Insert',
+      'Home',
+      'End',
+      'PageUp',
+      'PageDown',
+      'ArrowUp',
+      'ArrowDown',
+      'ArrowLeft',
+      'ArrowRight',
+      'Enter',
+      'Return'
+    ].includes(key)
+  ) {
+    const mapped =
+      key === 'ArrowUp'
+        ? 'Up'
+        : key === 'ArrowDown'
+          ? 'Down'
+          : key === 'ArrowLeft'
+            ? 'Left'
+            : key === 'ArrowRight'
+              ? 'Right'
+              : key === 'Return'
+                ? 'Enter'
+                : key
     parts.push(mapped)
   } else {
     return null // Unknown key

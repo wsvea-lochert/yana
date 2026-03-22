@@ -12,6 +12,7 @@ function makeNote(overrides: Partial<NoteMetadata> = {}): NoteMetadata {
     tags: [],
     excerpt: '',
     wordCount: 0,
+    folder: '',
     ...overrides
   }
 }

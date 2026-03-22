@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { AppLayout } from './components/Layout/AppLayout'
 import { CommandPalette } from './components/CommandPalette/CommandPalette'
 import { SettingsDialog } from './components/Settings/SettingsDialog'
@@ -6,6 +6,7 @@ import { DeleteNoteDialog } from './components/shared/DeleteNoteDialog'
 import { Toast } from './components/shared/Toast'
 import { useNoteStore } from './stores/note.store'
 import { useUiStore } from './stores/ui.store'
+import { useFolderStore } from './stores/folder.store'
 
 export default function App() {
   const refreshFromVault = useNoteStore((s) => s.refreshFromVault)
@@ -16,13 +17,15 @@ export default function App() {
   const toggleTheme = useUiStore((s) => s.toggleTheme)
   const toggleFocusMode = useUiStore((s) => s.toggleFocusMode)
   const setModifierHeld = useUiStore((s) => s.setModifierHeld)
-
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const settingsOpen = useUiStore((s) => s.settingsOpen)
+  const setSettingsOpen = useUiStore((s) => s.setSettingsOpen)
+  const loadFolders = useFolderStore((s) => s.loadFolders)
 
   useEffect(() => {
     useUiStore.getState().initTheme()
     loadNotes()
-  }, [loadNotes])
+    loadFolders()
+  }, [loadNotes, loadFolders])
 
   useEffect(() => {
     const unsubscribe = window.api.on.vaultChanged(() => {
@@ -55,6 +58,14 @@ export default function App() {
     return unsubscribe
   }, [])
 
+  // Listen for update available
+  useEffect(() => {
+    const unsubscribe = window.api.on.updateAvailable(() => {
+      useUiStore.getState().setUpdateAvailable(true)
+    })
+    return unsubscribe
+  }, [])
+
   // Listen for menu bar events
   useEffect(() => {
     const unsubs = [
@@ -64,7 +75,7 @@ export default function App() {
       window.api.on.toggleTheme(() => toggleTheme())
     ]
     return () => unsubs.forEach((u) => u())
-  }, [toggleSidebar, toggleFocusMode, toggleTheme])
+  }, [toggleSidebar, toggleFocusMode, toggleTheme, setSettingsOpen])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -134,7 +145,7 @@ export default function App() {
       window.removeEventListener('keyup', handleKeyUp)
       window.removeEventListener('blur', handleBlur)
     }
-  }, [setCommandPaletteOpen, toggleSidebar, setModifierHeld])
+  }, [setCommandPaletteOpen, toggleSidebar, setModifierHeld, selectNote, setSettingsOpen])
 
   return (
     <>

@@ -14,7 +14,8 @@ export function createMockApi(): YanaApi {
         modified: '2026-01-01T00:00:00.000Z',
         tags: [],
         excerpt: '',
-        wordCount: 0
+        wordCount: 0,
+        folder: ''
       }),
       update: vi.fn().mockResolvedValue({
         id: 'test-note',
@@ -24,8 +25,15 @@ export function createMockApi(): YanaApi {
         modified: '2026-01-01T00:00:00.000Z',
         tags: [],
         excerpt: '',
-        wordCount: 0
+        wordCount: 0,
+        folder: ''
       }),
+      delete: vi.fn().mockResolvedValue(undefined)
+    },
+    folders: {
+      list: vi.fn().mockResolvedValue([]),
+      create: vi.fn().mockResolvedValue({ id: 'test-folder', name: 'Test Folder', sortOrder: 0 }),
+      rename: vi.fn().mockResolvedValue({ id: 'test-folder', name: 'Renamed', sortOrder: 0 }),
       delete: vi.fn().mockResolvedValue(undefined)
     },
     search: {
@@ -54,7 +62,8 @@ export function createMockApi(): YanaApi {
       toggleFocusMode: vi.fn().mockReturnValue(() => {}),
       toggleTheme: vi.fn().mockReturnValue(() => {}),
       hotkeyRecorded: vi.fn().mockReturnValue(() => {}),
-      noteSaved: vi.fn().mockReturnValue(() => {})
+      noteSaved: vi.fn().mockReturnValue(() => {}),
+      updateAvailable: vi.fn().mockReturnValue(() => {})
     }
   }
 }

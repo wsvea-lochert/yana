@@ -10,6 +10,7 @@ import { createIndexService } from './services/index.service'
 import { createSearchService } from './services/search.service'
 import { createLinksService } from './services/links.service'
 import { createTagsService } from './services/tags.service'
+import { createFolderService } from './services/folder.service'
 import { createDatabase } from './db/database'
 import { runMigrations } from './db/migrations'
 import { CHANNELS } from '@shared/constants/channels'
@@ -34,11 +35,18 @@ export function initializeApp(): void {
     const db = createDatabase(dbPath)
     runMigrations(db)
 
+    const ElectronStore = (await import('electron-store')).default
+    const folderStore = new ElectronStore({ name: 'folders' }) as {
+      get(key: string): unknown
+      set(key: string, value: unknown): void
+    }
+
     const vaultService = createVaultService(vaultPath)
     const indexService = createIndexService(db)
     const linksService = createLinksService()
     const tagsService = createTagsService()
     const searchService = createSearchService(db)
+    const folderService = createFolderService(folderStore)
 
     const allNotes = await vaultService.listNotes()
     indexService.fullReindex(allNotes)
@@ -54,6 +62,7 @@ export function initializeApp(): void {
       searchService,
       linksService,
       tagsService,
+      folderService,
       overlayWindow,
       mainWindow
     })
@@ -119,9 +128,7 @@ export function initializeApp(): void {
   })
 
   app.on('activate', () => {
-    const mainWin = BrowserWindow.getAllWindows().find(
-      (w) => !w.isAlwaysOnTop()
-    )
+    const mainWin = BrowserWindow.getAllWindows().find((w) => !w.isAlwaysOnTop())
     if (mainWin) {
       mainWin.show()
       mainWin.focus()

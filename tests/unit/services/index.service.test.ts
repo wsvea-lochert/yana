@@ -14,6 +14,7 @@ function makeMeta(overrides: Partial<NoteMetadata> = {}): NoteMetadata {
     tags: [],
     excerpt: 'An excerpt',
     wordCount: 10,
+    folder: '',
     ...overrides
   }
 }

@@ -1,4 +1,5 @@
 import type { NoteMetadata, Note, CreateNoteInput, UpdateNoteInput } from './note'
+import type { Folder } from './folder'
 import type { SearchQuery, SearchResult } from './search'
 
 export interface YanaApi {
@@ -7,6 +8,12 @@ export interface YanaApi {
     get: (id: string) => Promise<Note | null>
     create: (input: CreateNoteInput) => Promise<NoteMetadata>
     update: (input: UpdateNoteInput) => Promise<NoteMetadata>
+    delete: (id: string) => Promise<void>
+  }
+  folders: {
+    list: () => Promise<readonly Folder[]>
+    create: (input: { name: string }) => Promise<Folder>
+    rename: (input: { id: string; name: string }) => Promise<Folder>
     delete: (id: string) => Promise<void>
   }
   search: {
@@ -19,7 +26,9 @@ export interface YanaApi {
     getVaultPath: () => Promise<string>
   }
   hotkey: {
-    updateOverlay: (hotkey: string) => Promise<{ success: boolean; current: string; error?: string }>
+    updateOverlay: (
+      hotkey: string
+    ) => Promise<{ success: boolean; current: string; error?: string }>
     startRecording: () => Promise<void>
   }
   shell: {
@@ -36,6 +45,7 @@ export interface YanaApi {
     toggleTheme: (callback: () => void) => () => void
     hotkeyRecorded: (callback: (accelerator: string) => void) => () => void
     noteSaved: (callback: (metadata: NoteMetadata) => void) => () => void
+    updateAvailable: (callback: () => void) => () => void
   }
 }
 
