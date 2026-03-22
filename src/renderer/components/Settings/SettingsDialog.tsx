@@ -22,6 +22,8 @@ const isMac = navigator.platform.includes('Mac')
 
 function formatAccelerator(accel: string): string {
   return accel
+    .replace('CommandOrControl', isMac ? '\u2318' : 'Ctrl')
+    .replace('CmdOrCtrl', isMac ? '\u2318' : 'Ctrl')
     .replace('Command', isMac ? '\u2318' : 'Cmd')
     .replace('Control', isMac ? '\u2303' : 'Ctrl')
     .replace('Alt', isMac ? '\u2325' : 'Alt')
