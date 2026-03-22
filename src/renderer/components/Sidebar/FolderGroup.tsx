@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 interface FolderGroupProps {
   readonly folder: Folder
   readonly notes: readonly NoteMetadata[]
+  readonly startIndex: number
   readonly activeNoteId: string | null
   readonly isCollapsed: boolean
   readonly onToggleCollapsed: () => void
@@ -23,6 +24,7 @@ interface FolderGroupProps {
 export function FolderGroup({
   folder,
   notes,
+  startIndex,
   activeNoteId,
   isCollapsed,
   onToggleCollapsed,
@@ -50,7 +52,7 @@ export function FolderGroup({
       </FolderContextMenu>
       <CollapsibleContent>
         <div className="ml-1">
-          {notes.map((note) => (
+          {notes.map((note, i) => (
             <SidebarNoteContextMenu
               key={note.id}
               currentFolder={note.folder}
@@ -61,6 +63,7 @@ export function FolderGroup({
             >
               <SidebarNoteItem
                 note={note}
+                index={startIndex + i}
                 isActive={note.id === activeNoteId}
                 isIndented
                 onClick={() => onSelectNote(note.id)}
