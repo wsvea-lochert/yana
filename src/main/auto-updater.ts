@@ -2,6 +2,11 @@ import { autoUpdater } from 'electron-updater'
 import { BrowserWindow, dialog } from 'electron'
 import { is } from '@electron-toolkit/utils'
 
+function getMainWindow(): BrowserWindow | undefined {
+  const win = BrowserWindow.getAllWindows().find((w) => !w.isAlwaysOnTop())
+  return win && !win.isDestroyed() ? win : undefined
+}
+
 export function initAutoUpdater(): void {
   if (is.dev) return
 
@@ -9,8 +14,7 @@ export function initAutoUpdater(): void {
   autoUpdater.autoInstallOnAppQuit = true
 
   autoUpdater.on('update-downloaded', (info) => {
-    const mainWindow = BrowserWindow.getAllWindows().find((w) => !w.isAlwaysOnTop())
-    const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : undefined
+    const parent = getMainWindow()
 
     dialog
       .showMessageBox({
@@ -27,6 +31,31 @@ export function initAutoUpdater(): void {
           autoUpdater.quitAndInstall()
         }
       })
+  })
+
+  autoUpdater.checkForUpdatesAndNotify()
+}
+
+export function checkForUpdates(): void {
+  if (is.dev) {
+    const parent = getMainWindow()
+    dialog.showMessageBox({
+      ...(parent ? { window: parent } : {}),
+      type: 'info',
+      title: 'Updates',
+      message: 'Update checking is disabled in development.'
+    })
+    return
+  }
+
+  autoUpdater.once('update-not-available', () => {
+    const parent = getMainWindow()
+    dialog.showMessageBox({
+      ...(parent ? { window: parent } : {}),
+      type: 'info',
+      title: 'No Updates',
+      message: 'You are running the latest version.'
+    })
   })
 
   autoUpdater.checkForUpdatesAndNotify()
