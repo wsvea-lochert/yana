@@ -8,7 +8,7 @@ export function createAppMenu(mainWindow: BrowserWindow): void {
     ...(isMac
       ? [
           {
-            label: 'PNOT',
+            label: 'Yana',
             submenu: [
               { role: 'about' as const },
               { type: 'separator' as const },

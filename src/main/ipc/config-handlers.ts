@@ -44,6 +44,6 @@ export function registerConfigHandlers(): void {
 
   ipcMain.handle(CHANNELS.CONFIG_GET_VAULT_PATH, () => {
     const home = process.env.HOME ?? process.env.USERPROFILE ?? '.'
-    return join(home, 'QuickNote')
+    return join(home, 'Yana')
   })
 }

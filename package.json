@@ -1,5 +1,5 @@
 {
-  "name": "pnot",
+  "name": "yana",
   "version": "0.1.0",
   "private": true,
   "description": "Keyboard-first personal knowledge capture tool",
@@ -9,7 +9,7 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "postinstall": "electron-rebuild -f -w better-sqlite3 && node -e \"if(process.platform==='darwin'){const p=require('path').join(require('electron').toString(),'..','..','Info.plist');try{require('child_process').execSync('/usr/libexec/PlistBuddy -c \\\"Set :CFBundleName PNOT\\\" '+p);require('child_process').execSync('/usr/libexec/PlistBuddy -c \\\"Set :CFBundleDisplayName PNOT\\\" '+p)}catch{}}\"",
+    "postinstall": "electron-rebuild -f -w better-sqlite3 && node -e \"if(process.platform==='darwin'){const p=require('path').join(require('electron').toString(),'..','..','Info.plist');try{require('child_process').execSync('/usr/libexec/PlistBuddy -c \\\"Set :CFBundleName Yana\\\" '+p);require('child_process').execSync('/usr/libexec/PlistBuddy -c \\\"Set :CFBundleDisplayName Yana\\\" '+p)}catch{}}\"",
     "rebuild:electron": "electron-rebuild -f -w better-sqlite3",
     "rebuild:node": "npm rebuild better-sqlite3",
     "typecheck": "tsc --noEmit",

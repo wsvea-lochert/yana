@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
-import type { QuickNoteApi } from '@shared/types/electron-env'
+import type { YanaApi } from '@shared/types/electron-env'
 
-export function createMockApi(): QuickNoteApi {
+export function createMockApi(): YanaApi {
   return {
     notes: {
       list: vi.fn().mockResolvedValue([]),

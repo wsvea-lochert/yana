@@ -11,7 +11,7 @@ export function createTray(mainWindow: BrowserWindow, onQuickCapture: () => void
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Open QuickNote',
+      label: 'Open Yana',
       click: () => {
         mainWindow.show()
         mainWindow.focus()
@@ -30,7 +30,7 @@ export function createTray(mainWindow: BrowserWindow, onQuickCapture: () => void
     }
   ])
 
-  tray.setToolTip('QuickNote')
+  tray.setToolTip('Yana')
   tray.setContextMenu(contextMenu)
 
   tray.on('click', () => {

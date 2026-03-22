@@ -18,7 +18,7 @@ export function AppLayout() {
           {/* App title — aligned with traffic lights (y:16, x:16, ~52px wide) */}
           <div className="drag-region relative flex items-center h-[52px] pl-[76px]">
             <span className="text-sm font-bold tracking-wide text-foreground">
-              PNOT
+              Yana
             </span>
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <ShortcutHint shortcut="Mod+B" className="ml-0" />

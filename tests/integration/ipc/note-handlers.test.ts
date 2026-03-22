@@ -16,7 +16,7 @@ describe('Note handlers integration', () => {
   let searchService: ReturnType<typeof createSearchService>
 
   beforeEach(async () => {
-    vaultPath = mkdtempSync(join(tmpdir(), 'quicknote-ipc-'))
+    vaultPath = mkdtempSync(join(tmpdir(), 'yana-ipc-'))
     db = createInMemoryDatabase()
     runMigrations(db)
 

@@ -9,7 +9,7 @@ describe('VaultService', () => {
   let service: ReturnType<typeof createVaultService>
 
   beforeEach(() => {
-    vaultPath = mkdtempSync(join(tmpdir(), 'quicknote-test-'))
+    vaultPath = mkdtempSync(join(tmpdir(), 'yana-test-'))
     service = createVaultService(vaultPath)
   })
 
