@@ -55,6 +55,7 @@ export interface OverlayApi {
   }
   config: {
     get: (key: string) => Promise<unknown>
+    set: (key: string, value: unknown) => Promise<void>
   }
   on: {
     overlayShown: (callback: () => void) => () => void

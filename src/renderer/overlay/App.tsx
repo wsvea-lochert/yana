@@ -98,11 +98,9 @@ export default function App() {
           const title = note.frontmatter.title
           const rest = note.content
           const md = rest ? `# ${title}\n\n${rest}` : `# ${title}`
-          setContent(md)
-          // savedText is set to raw md here; the pending-content useEffect
-          // in the hook will fire onUpdate with normalized markdown, which
-          // updates currentMarkdown. We use a ref-based flag to sync both.
+          // Set flag before setContent so the sync callback picks it up
           savedTextFromLoad.current = true
+          setContent(md)
           setEditingNoteId(activeId)
           return
         }
@@ -163,7 +161,9 @@ export default function App() {
       if (editingNoteId) {
         await overlayApi.notes.update({ id: editingNoteId, title, content })
       } else {
-        await overlayApi.notes.create({ title, content })
+        const metadata = await overlayApi.notes.create({ title, content })
+        setEditingNoteId(metadata.id)
+        overlayApi.config.set('activeNoteId', metadata.id).catch(() => {})
       }
       return true
     } catch {

@@ -18,7 +18,8 @@ const api: OverlayApi = {
     navigate: (noteId: string) => ipcRenderer.invoke(CHANNELS.OVERLAY_NAVIGATE, noteId)
   },
   config: {
-    get: (key: string) => ipcRenderer.invoke(CHANNELS.CONFIG_GET, key)
+    get: (key: string) => ipcRenderer.invoke(CHANNELS.CONFIG_GET, key),
+    set: (key: string, value: unknown) => ipcRenderer.invoke(CHANNELS.CONFIG_SET, { key, value })
   },
   on: {
     overlayShown: (callback) => {
