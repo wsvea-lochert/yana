@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { CHANNELS } from '@shared/constants/channels'
-import type { QuickNoteApi } from '@shared/types/electron-env'
+import type { YanaApi } from '@shared/types/electron-env'
 import type { CreateNoteInput, UpdateNoteInput } from '@shared/types/note'
 import type { SearchQuery } from '@shared/types/search'
 
@@ -10,7 +10,7 @@ function onChannel(channel: string, callback: (...args: unknown[]) => void): () 
   return () => ipcRenderer.removeListener(channel, handler)
 }
 
-const api: QuickNoteApi = {
+const api: YanaApi = {
   notes: {
     list: () => ipcRenderer.invoke(CHANNELS.NOTE_LIST),
     get: (id: string) => ipcRenderer.invoke(CHANNELS.NOTE_GET, id),

@@ -1,5 +1,5 @@
-appId: com.pnot.app
-productName: PNOT
+appId: com.yana.app
+productName: Yana
 directories:
   buildResources: resources
   output: dist
@@ -16,7 +16,7 @@ asarUnpack:
 publish:
   provider: github
   owner: wsvea-lochert
-  repo: pnot
+  repo: yana
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   target:

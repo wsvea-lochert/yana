@@ -178,7 +178,7 @@ function registerHotkeyHandler(mainWindow: BrowserWindow): void {
 function registerShellHandlers(): void {
   ipcMain.handle(CHANNELS.SHELL_SHOW_IN_FOLDER, (_event, noteId: string) => {
     const home = process.env.HOME ?? process.env.USERPROFILE ?? '.'
-    const filePath = join(home, 'QuickNote', `${noteId}.md`)
+    const filePath = join(home, 'Yana', `${noteId}.md`)
     shell.showItemInFolder(filePath)
   })
 }

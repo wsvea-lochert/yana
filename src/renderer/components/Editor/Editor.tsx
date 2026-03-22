@@ -131,7 +131,7 @@ export function Editor() {
     return (
       <div className="flex items-center justify-center h-full text-ink/30 dark:text-warm-white/30">
         <div className="text-center">
-          <p className="text-2xl mb-2">PNOT</p>
+          <p className="text-2xl mb-2">Yana</p>
           <p className="text-sm">
             Select a note or press{' '}
             <Kbd>⌘+N</Kbd>{' '}
