@@ -105,6 +105,8 @@ export function useOverlayEditor({
       isSettingContent.current = true
       editor.commands.setContent(markdown)
       isSettingContent.current = false
+      const normalized = editor.storage.markdown.getMarkdown()
+      onUpdateRef.current(normalized)
     },
     [editor]
   )
