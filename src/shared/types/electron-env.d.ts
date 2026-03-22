@@ -1,7 +1,7 @@
 import type { NoteMetadata, Note, CreateNoteInput, UpdateNoteInput } from './note'
 import type { SearchQuery, SearchResult } from './search'
 
-export interface QuickNoteApi {
+export interface YanaApi {
   notes: {
     list: () => Promise<readonly NoteMetadata[]>
     get: (id: string) => Promise<Note | null>
@@ -64,6 +64,6 @@ export interface OverlayApi {
 
 declare global {
   interface Window {
-    api: QuickNoteApi
+    api: YanaApi
   }
 }

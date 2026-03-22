@@ -27,8 +27,8 @@ export function initializeApp(): void {
     }
 
     const home = process.env.HOME ?? process.env.USERPROFILE ?? '.'
-    const vaultPath = join(home, 'QuickNote')
-    const dbPath = join(app.getPath('userData'), 'quicknote.db')
+    const vaultPath = join(home, 'Yana')
+    const dbPath = join(app.getPath('userData'), 'yana.db')
 
     const db = createDatabase(dbPath)
     runMigrations(db)
