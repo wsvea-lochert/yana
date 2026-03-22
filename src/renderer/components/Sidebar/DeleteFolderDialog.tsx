@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import type { Folder } from '@shared/types/folder'
 
+const isMac = navigator.platform.includes('Mac')
+const modSymbol = isMac ? '\u2318' : 'Ctrl'
+
 interface DeleteFolderDialogProps {
   readonly folder: Folder
   readonly noteCount: number
@@ -46,13 +49,14 @@ export function DeleteFolderDialog({
     if (!open) return
 
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'd' || e.key === 'D') {
+      const mod = e.metaKey || e.ctrlKey
+      if (mod && e.key === 'd') {
         e.preventDefault()
         handleKeep()
-      } else if ((e.key === 'a' || e.key === 'A') && noteCount > 0) {
+      } else if (mod && e.key === 'a' && noteCount > 0) {
         e.preventDefault()
         handleAll()
-      } else if (e.key === 'Escape') {
+      } else if (mod && e.key === 'n') {
         e.preventDefault()
         handleCancel()
       }
@@ -64,42 +68,36 @@ export function DeleteFolderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Delete "{folder.name}"?</DialogTitle>
+          <DialogTitle>Delete folder</DialogTitle>
           <DialogDescription>
             {noteCount > 0
-              ? `This folder contains ${noteCount} ${noteCount === 1 ? 'note' : 'notes'}.`
-              : 'This folder is empty.'}
+              ? `Are you sure you want to delete \u201c${folder.name}\u201d? It contains ${noteCount} ${noteCount === 1 ? 'note' : 'notes'}.`
+              : `Are you sure you want to delete \u201c${folder.name}\u201d?`}
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex-col gap-1.5 sm:flex-col pt-2">
-          <Button
-            variant="ghost"
-            className="w-full justify-between h-9 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={handleKeep}
-          >
+        <DialogFooter>
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+            <Kbd className="ml-2 text-[10px] h-auto py-0.5 bg-background/10 text-muted-foreground">
+              {modSymbol} + N
+            </Kbd>
+          </Button>
+          <Button variant="destructive" onClick={handleKeep}>
             Delete folder
-            <Kbd className="text-[10px]">D</Kbd>
+            <Kbd className="ml-2 text-[10px] h-auto py-0.5 bg-white/15 text-destructive-foreground">
+              {modSymbol} + D
+            </Kbd>
           </Button>
           {noteCount > 0 && (
-            <Button
-              variant="ghost"
-              className="w-full justify-between h-9 text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={handleAll}
-            >
-              Delete folder and all notes
-              <Kbd className="text-[10px]">A</Kbd>
+            <Button variant="destructive" onClick={handleAll}>
+              Delete all
+              <Kbd className="ml-2 text-[10px] h-auto py-0.5 bg-white/15 text-destructive-foreground">
+                {modSymbol} + A
+              </Kbd>
             </Button>
           )}
-          <Button
-            variant="ghost"
-            className="w-full justify-between h-9 text-muted-foreground"
-            onClick={handleCancel}
-          >
-            Cancel
-            <Kbd className="text-[10px]">Esc</Kbd>
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
