@@ -28,7 +28,7 @@ mac:
       arch:
         - x64
         - arm64
-  icon: resources/icon.png
+  icon: src/renderer/assets/yana_prod.icns
   hardenedRuntime: true
   gatekeeperAssess: false
 win:
