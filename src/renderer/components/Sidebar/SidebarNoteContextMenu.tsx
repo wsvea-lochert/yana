@@ -13,7 +13,6 @@ import type { Folder } from '@shared/types/folder'
 
 interface SidebarNoteContextMenuProps {
   readonly children: ReactNode
-  readonly noteId: string
   readonly currentFolder: string
   readonly allFolders: readonly Folder[]
   readonly onDelete: () => void

@@ -70,6 +70,10 @@ export function createFolderService(store: FolderStore): FolderService {
   }
 
   function deleteFolder(id: string): void {
+    if (!id || typeof id !== 'string') {
+      throw new Error('Folder ID is required')
+    }
+
     const folders = getFolders()
     const filtered = folders.filter((f) => f.id !== id)
 

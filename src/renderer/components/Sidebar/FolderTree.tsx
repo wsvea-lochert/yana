@@ -22,23 +22,28 @@ function groupNotesByFolder(
   notes: readonly NoteMetadata[],
   folders: readonly Folder[]
 ): { folderGroups: Map<string, readonly NoteMetadata[]>; rootNotes: readonly NoteMetadata[] } {
-  const folderGroups = new Map<string, NoteMetadata[]>()
+  const folderIds = new Set(folders.map((f) => f.id))
 
-  for (const folder of folders) {
-    folderGroups.set(folder.id, [])
+  const initial = {
+    groups: new Map<string, readonly NoteMetadata[]>(folders.map((f) => [f.id, []])),
+    root: [] as readonly NoteMetadata[]
   }
 
-  const rootNotes: NoteMetadata[] = []
-
-  for (const note of notes) {
-    if (note.folder && folderGroups.has(note.folder)) {
-      folderGroups.get(note.folder)!.push(note)
-    } else {
-      rootNotes.push(note)
+  const result = notes.reduce((acc, note) => {
+    if (note.folder && folderIds.has(note.folder)) {
+      const existing = acc.groups.get(note.folder) ?? []
+      return {
+        ...acc,
+        groups: new Map([...acc.groups, [note.folder, [...existing, note]]])
+      }
     }
-  }
+    return { ...acc, root: [...acc.root, note] }
+  }, initial)
 
-  return { folderGroups, rootNotes: sortNotes([...rootNotes], 'modified', 'desc') }
+  return {
+    folderGroups: result.groups,
+    rootNotes: sortNotes([...result.root], 'modified', 'desc')
+  }
 }
 
 export function FolderTree({
@@ -68,7 +73,7 @@ export function FolderTree({
       {rootNotes.map((note) => (
         <SidebarNoteContextMenu
           key={note.id}
-          noteId={note.id}
+
           currentFolder=""
           allFolders={folders}
           onDelete={() => onDeleteNote(note.id)}

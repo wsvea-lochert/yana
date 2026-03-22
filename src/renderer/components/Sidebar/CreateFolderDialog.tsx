@@ -25,9 +25,13 @@ export function CreateFolderDialog({ open, onOpenChange }: CreateFolderDialogPro
       const trimmed = name.trim()
       if (!trimmed) return
 
-      await createFolder(trimmed)
-      setName('')
-      onOpenChange(false)
+      try {
+        await createFolder(trimmed)
+        setName('')
+        onOpenChange(false)
+      } catch {
+        // Toast already shown by store; keep dialog open for retry
+      }
     },
     [name, createFolder, onOpenChange]
   )

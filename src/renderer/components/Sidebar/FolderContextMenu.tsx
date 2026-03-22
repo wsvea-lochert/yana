@@ -23,11 +23,13 @@ export function FolderContextMenu({ children, folder }: FolderContextMenuProps) 
   const moveNoteToFolder = useNoteStore((s) => s.moveNoteToFolder)
 
   async function handleDelete() {
-    const folderNotes = notes.filter((n) => n.folder === folder.id)
-    for (const note of folderNotes) {
-      await moveNoteToFolder(note.id, '')
+    try {
+      const folderNotes = notes.filter((n) => n.folder === folder.id)
+      await Promise.all(folderNotes.map((note) => moveNoteToFolder(note.id, '')))
+      await deleteFolder(folder.id)
+    } catch {
+      // Errors already shown via toast in the stores
     }
-    await deleteFolder(folder.id)
   }
 
   return (

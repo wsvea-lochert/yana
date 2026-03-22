@@ -53,7 +53,6 @@ export function FolderGroup({
           {notes.map((note) => (
             <SidebarNoteContextMenu
               key={note.id}
-              noteId={note.id}
               currentFolder={note.folder}
               allFolders={allFolders}
               onDelete={() => onDeleteNote(note.id)}
