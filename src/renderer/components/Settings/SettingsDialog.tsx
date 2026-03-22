@@ -28,7 +28,7 @@ function formatAccelerator(accel: string): string {
     .replace('Control', isMac ? '\u2303' : 'Ctrl')
     .replace('Alt', isMac ? '\u2325' : 'Alt')
     .replace('Shift', isMac ? '\u21E7' : 'Shift')
-    .replace(/\+/g, ' ')
+    .replace(/\+/g, ' + ')
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
