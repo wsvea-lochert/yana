@@ -24,7 +24,7 @@ export function initializeApp(): void {
       app.setName('Yana (Dev)')
 
       if (process.platform === 'darwin') {
-        const iconPath = join(__dirname, '../../resources/icon.png')
+        const iconPath = join(__dirname, '../../resources/icon.icns')
         const icon = nativeImage.createFromPath(iconPath)
         if (!icon.isEmpty()) {
           app.dock?.setIcon(icon)
