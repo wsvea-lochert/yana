@@ -2,17 +2,24 @@ import { forwardRef, useEffect, useRef } from 'react'
 import type { NoteMetadata } from '@shared/types/note'
 import { formatRelativeDate } from '@shared/utils/date'
 import { cn } from '@/lib/utils'
+import { Kbd } from '@/components/ui/kbd'
+import { useUiStore } from '../../stores/ui.store'
+
+const isMac = navigator.platform.includes('Mac')
+const modLabel = isMac ? '\u2318' : 'Ctrl'
 
 interface SidebarNoteItemProps {
   readonly note: NoteMetadata
+  readonly index?: number
   readonly isActive: boolean
   readonly isIndented?: boolean
   readonly onClick: () => void
 }
 
 export const SidebarNoteItem = forwardRef<HTMLDivElement, SidebarNoteItemProps>(
-  function SidebarNoteItem({ note, isActive, isIndented = false, onClick, ...props }, forwardedRef) {
+  function SidebarNoteItem({ note, index, isActive, isIndented = false, onClick, ...props }, forwardedRef) {
     const localRef = useRef<HTMLDivElement>(null)
+    const modifierHeld = useUiStore((s) => s.modifierHeld)
 
     useEffect(() => {
       if (isActive) {
@@ -47,8 +54,16 @@ export const SidebarNoteItem = forwardRef<HTMLDivElement, SidebarNoteItemProps>(
       >
         <div className="flex items-center gap-2">
           <span className="flex-1 text-sm truncate font-medium">{note.title}</span>
-          <span className="flex-shrink-0 text-[11px] text-muted-foreground/60 whitespace-nowrap">
-            {formatRelativeDate(note.modified)}
+          <span className="flex-shrink-0 flex items-center justify-end">
+            {modifierHeld && index !== undefined && index < 9 ? (
+              <Kbd className="text-[10px] h-auto py-0.5 animate-in fade-in duration-100">
+                {modLabel} + {index + 1}
+              </Kbd>
+            ) : (
+              <span className="text-[11px] text-muted-foreground/60 whitespace-nowrap">
+                {formatRelativeDate(note.modified)}
+              </span>
+            )}
           </span>
         </div>
       </div>

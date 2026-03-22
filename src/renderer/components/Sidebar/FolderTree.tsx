@@ -70,10 +70,9 @@ export function FolderTree({
   return (
     <div className="space-y-0.5">
       {/* Root notes first */}
-      {rootNotes.map((note) => (
+      {rootNotes.map((note, i) => (
         <SidebarNoteContextMenu
           key={note.id}
-
           currentFolder=""
           allFolders={folders}
           onDelete={() => onDeleteNote(note.id)}
@@ -82,6 +81,7 @@ export function FolderTree({
         >
           <SidebarNoteItem
             note={note}
+            index={i}
             isActive={note.id === activeNoteId}
             onClick={() => onSelectNote(note.id)}
           />
@@ -89,26 +89,32 @@ export function FolderTree({
       ))}
 
       {/* Folders */}
-      {sortedFolders.map((folder) => {
-        const folderNotes = folderGroups.get(folder.id) ?? []
-        const sorted = sortNotes([...folderNotes], 'modified', 'desc')
+      {(() => {
+        let globalIndex = rootNotes.length
+        return sortedFolders.map((folder) => {
+          const folderNotes = folderGroups.get(folder.id) ?? []
+          const sorted = sortNotes([...folderNotes], 'modified', 'desc')
+          const startIndex = globalIndex
+          globalIndex += sorted.length
 
-        return (
-          <FolderGroup
-            key={folder.id}
-            folder={folder}
-            notes={sorted}
-            activeNoteId={activeNoteId}
-            isCollapsed={collapsedFolderIds.has(folder.id)}
-            onToggleCollapsed={() => onToggleCollapsed(folder.id)}
-            onSelectNote={onSelectNote}
-            onDeleteNote={onDeleteNote}
-            onMoveNote={onMoveNote}
-            onShowInFinder={onShowInFinder}
-            allFolders={folders}
-          />
-        )
-      })}
+          return (
+            <FolderGroup
+              key={folder.id}
+              folder={folder}
+              notes={sorted}
+              startIndex={startIndex}
+              activeNoteId={activeNoteId}
+              isCollapsed={collapsedFolderIds.has(folder.id)}
+              onToggleCollapsed={() => onToggleCollapsed(folder.id)}
+              onSelectNote={onSelectNote}
+              onDeleteNote={onDeleteNote}
+              onMoveNote={onMoveNote}
+              onShowInFinder={onShowInFinder}
+              allFolders={folders}
+            />
+          )
+        })
+      })()}
 
       {rootNotes.length === 0 && folders.length === 0 && (
         <div className="px-3 py-8 text-center text-sm text-muted-foreground">No notes yet</div>
