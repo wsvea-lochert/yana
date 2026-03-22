@@ -14,7 +14,8 @@ function makeMeta(id: string, title: string, tags: string[] = []): NoteMetadata 
     modified: '2026-01-01T00:00:00.000Z',
     tags,
     excerpt: `Excerpt for ${title}`,
-    wordCount: 50
+    wordCount: 50,
+    folder: ''
   }
 }
 

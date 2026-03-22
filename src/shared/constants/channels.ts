@@ -18,5 +18,10 @@ export const CHANNELS = Object.freeze({
   HOTKEY_START_RECORDING: 'hotkey:startRecording',
   HOTKEY_RECORDED: 'hotkey:recorded',
   NOTE_SAVED: 'note:saved',
-  SHELL_SHOW_IN_FOLDER: 'shell:showInFolder'
+  SHELL_SHOW_IN_FOLDER: 'shell:showInFolder',
+  FOLDER_LIST: 'folder:list',
+  FOLDER_CREATE: 'folder:create',
+  FOLDER_RENAME: 'folder:rename',
+  FOLDER_DELETE: 'folder:delete',
+  UPDATE_AVAILABLE: 'update:available'
 } as const)

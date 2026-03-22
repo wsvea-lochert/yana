@@ -31,7 +31,8 @@ describe('NoteStore', () => {
           modified: '2026-01-01T00:00:00.000Z',
           tags: ['test'],
           excerpt: 'Hello',
-          wordCount: 1
+          wordCount: 1,
+          folder: ''
         }
       ]
       vi.mocked(mockApi.notes.list).mockResolvedValueOnce(mockNotes)
@@ -63,7 +64,8 @@ describe('NoteStore', () => {
           created: '2026-01-01T00:00:00.000Z',
           modified: '2026-01-01T00:00:00.000Z',
           tags: [],
-          aliases: []
+          aliases: [],
+          folder: ''
         },
         content: 'Hello',
         rawContent: '---\ntitle: Test\n---\nHello',
@@ -89,7 +91,8 @@ describe('NoteStore', () => {
         modified: '2026-01-01T00:00:00.000Z',
         tags: [],
         excerpt: '',
-        wordCount: 0
+        wordCount: 0,
+        folder: ''
       }
       useNoteStore.setState({ notes: [existing] })
 
@@ -101,7 +104,8 @@ describe('NoteStore', () => {
         modified: '2026-01-01T00:00:00.000Z',
         tags: [],
         excerpt: '',
-        wordCount: 0
+        wordCount: 0,
+        folder: ''
       }
       vi.mocked(mockApi.notes.create).mockResolvedValueOnce(created)
 
@@ -124,7 +128,8 @@ describe('NoteStore', () => {
           modified: '2026-01-01T00:00:00.000Z',
           tags: [],
           excerpt: '',
-          wordCount: 0
+          wordCount: 0,
+          folder: ''
         },
         {
           id: 'delete-me',
@@ -134,7 +139,8 @@ describe('NoteStore', () => {
           modified: '2026-01-01T00:00:00.000Z',
           tags: [],
           excerpt: '',
-          wordCount: 0
+          wordCount: 0,
+          folder: ''
         }
       ]
       useNoteStore.setState({ notes })
@@ -158,7 +164,8 @@ describe('NoteStore', () => {
             modified: '2026-01-01T00:00:00.000Z',
             tags: [],
             excerpt: '',
-            wordCount: 0
+            wordCount: 0,
+            folder: ''
           }
         ]
       })

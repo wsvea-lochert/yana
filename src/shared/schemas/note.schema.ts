@@ -1,12 +1,10 @@
 import { z } from 'zod'
 
 export const CreateNoteInputSchema = z.object({
-  title: z
-    .string()
-    .min(1, 'Title is required')
-    .max(255, 'Title must be 255 characters or fewer'),
+  title: z.string().min(1, 'Title is required').max(255, 'Title must be 255 characters or fewer'),
   content: z.string().optional(),
-  tags: z.array(z.string().min(1).max(50)).optional()
+  tags: z.array(z.string().min(1).max(50)).optional(),
+  folder: z.string().max(100).optional()
 })
 
 export const UpdateNoteInputSchema = z.object({
@@ -17,5 +15,6 @@ export const UpdateNoteInputSchema = z.object({
     .max(255, 'Title must be 255 characters or fewer')
     .optional(),
   content: z.string().optional(),
-  tags: z.array(z.string().min(1).max(50)).optional()
+  tags: z.array(z.string().min(1).max(50)).optional(),
+  folder: z.string().max(100).optional()
 })

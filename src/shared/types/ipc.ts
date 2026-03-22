@@ -1,4 +1,5 @@
 import type { NoteMetadata, Note, CreateNoteInput, UpdateNoteInput } from './note'
+import type { Folder } from './folder'
 import type { SearchQuery, SearchResult } from './search'
 
 export interface IpcChannelMap {
@@ -15,6 +16,10 @@ export interface IpcChannelMap {
   'overlay:hide': { request: void; response: void }
   'overlay:navigate': { request: string; response: void }
   'vault:changed': { request: never; response: NoteMetadata }
+  'folder:list': { request: void; response: readonly Folder[] }
+  'folder:create': { request: { name: string }; response: Folder }
+  'folder:rename': { request: { id: string; name: string }; response: Folder }
+  'folder:delete': { request: string; response: void }
 }
 
 export type IpcChannel = keyof IpcChannelMap

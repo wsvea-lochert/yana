@@ -10,11 +10,13 @@ interface UiState {
   readonly theme: Theme
   readonly focusMode: boolean
   readonly commandPaletteOpen: boolean
+  readonly settingsOpen: boolean
   readonly sidebarView: SidebarView
   readonly sortBy: SortBy
   readonly sortDirection: SortDirection
   readonly modifierHeld: boolean
   readonly pendingDeleteNoteId: string | null
+  readonly updateAvailable: boolean
 }
 
 interface UiActions {
@@ -24,11 +26,13 @@ interface UiActions {
   toggleTheme: () => void
   toggleFocusMode: () => void
   setCommandPaletteOpen: (open: boolean) => void
+  setSettingsOpen: (open: boolean) => void
   setSidebarView: (view: SidebarView) => void
   setSortBy: (sortBy: SortBy) => void
   toggleSortDirection: () => void
   setModifierHeld: (held: boolean) => void
   setPendingDeleteNoteId: (id: string | null) => void
+  setUpdateAvailable: (available: boolean) => void
 }
 
 export type UiStore = UiState & UiActions
@@ -42,11 +46,13 @@ export const useUiStore = create<UiStore>((set, get) => ({
   theme: 'light',
   focusMode: false,
   commandPaletteOpen: false,
+  settingsOpen: false,
   sidebarView: 'all',
   sortBy: 'modified',
   sortDirection: 'desc',
   modifierHeld: false,
   pendingDeleteNoteId: null,
+  updateAvailable: false,
 
   toggleSidebar: () => set({ sidebarVisible: !get().sidebarVisible }),
 
@@ -80,14 +86,17 @@ export const useUiStore = create<UiStore>((set, get) => ({
 
   setCommandPaletteOpen: (open: boolean) => set({ commandPaletteOpen: open }),
 
+  setSettingsOpen: (open: boolean) => set({ settingsOpen: open }),
+
   setSidebarView: (view: SidebarView) => set({ sidebarView: view }),
 
   setSortBy: (sortBy: SortBy) => set({ sortBy }),
 
-  toggleSortDirection: () =>
-    set({ sortDirection: get().sortDirection === 'asc' ? 'desc' : 'asc' }),
+  toggleSortDirection: () => set({ sortDirection: get().sortDirection === 'asc' ? 'desc' : 'asc' }),
 
   setModifierHeld: (held: boolean) => set({ modifierHeld: held }),
 
-  setPendingDeleteNoteId: (id: string | null) => set({ pendingDeleteNoteId: id })
+  setPendingDeleteNoteId: (id: string | null) => set({ pendingDeleteNoteId: id }),
+
+  setUpdateAvailable: (available: boolean) => set({ updateAvailable: available })
 }))

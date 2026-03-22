@@ -7,7 +7,13 @@ import { titleToSlug } from '@shared/utils/slug'
 import { toISOString } from '@shared/utils/date'
 import { CreateNoteInputSchema, UpdateNoteInputSchema } from '@shared/schemas/note.schema'
 import { MAX_EXCERPT_LENGTH, CHOKIDAR_STABILITY_THRESHOLD } from '@shared/constants/defaults'
-import type { NoteMetadata, Note, CreateNoteInput, UpdateNoteInput, Frontmatter } from '@shared/types/note'
+import type {
+  NoteMetadata,
+  Note,
+  CreateNoteInput,
+  UpdateNoteInput,
+  Frontmatter
+} from '@shared/types/note'
 
 export interface VaultEvent {
   readonly type: 'add' | 'change' | 'unlink'
@@ -65,7 +71,8 @@ function parseNoteFile(
       created: (data.created as string) ?? toISOString(),
       modified: (data.modified as string) ?? toISOString(),
       tags: (data.tags as string[]) ?? [],
-      aliases: (data.aliases as string[]) ?? []
+      aliases: (data.aliases as string[]) ?? [],
+      folder: (data.folder as string) ?? ''
     },
     content: content.trim()
   }
@@ -100,7 +107,8 @@ export function createVaultService(vaultPath: string): VaultService {
           modified: frontmatter.modified,
           tags: frontmatter.tags,
           excerpt: extractExcerpt(content),
-          wordCount: countWords(content)
+          wordCount: countWords(content),
+          folder: frontmatter.folder
         } as NoteMetadata
       })
     )
@@ -149,7 +157,8 @@ export function createVaultService(vaultPath: string): VaultService {
       created: now,
       modified: now,
       tags: validated.tags ?? [],
-      aliases: []
+      aliases: [],
+      folder: validated.folder ?? ''
     }
 
     const body = validated.content ?? ''
@@ -164,7 +173,8 @@ export function createVaultService(vaultPath: string): VaultService {
       modified: now,
       tags: validated.tags ?? [],
       excerpt: extractExcerpt(body),
-      wordCount: countWords(body)
+      wordCount: countWords(body),
+      folder: validated.folder ?? ''
     }
   }
 
@@ -180,6 +190,7 @@ export function createVaultService(vaultPath: string): VaultService {
       ...existing.frontmatter,
       ...(validated.title !== undefined ? { title: validated.title } : {}),
       ...(validated.tags !== undefined ? { tags: validated.tags } : {}),
+      ...(validated.folder !== undefined ? { folder: validated.folder } : {}),
       modified: now
     }
 
@@ -196,7 +207,8 @@ export function createVaultService(vaultPath: string): VaultService {
       modified: now,
       tags: updatedFrontmatter.tags,
       excerpt: extractExcerpt(content),
-      wordCount: countWords(content)
+      wordCount: countWords(content),
+      folder: updatedFrontmatter.folder
     }
   }
 

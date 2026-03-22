@@ -1,12 +1,17 @@
 import { autoUpdater } from 'electron-updater'
 import { BrowserWindow, dialog } from 'electron'
 import { is } from '@electron-toolkit/utils'
+import { CHANNELS } from '@shared/constants/channels'
 
 export function initAutoUpdater(): void {
   if (is.dev) return
 
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
+
+  autoUpdater.on('update-available', () => {
+    BrowserWindow.getAllWindows().forEach((w) => w.webContents.send(CHANNELS.UPDATE_AVAILABLE))
+  })
 
   autoUpdater.on('update-downloaded', (info) => {
     const mainWindow = BrowserWindow.getAllWindows().find((w) => !w.isAlwaysOnTop())

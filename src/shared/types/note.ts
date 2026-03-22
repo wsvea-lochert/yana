@@ -4,6 +4,7 @@ export interface Frontmatter {
   readonly modified: string
   readonly tags: readonly string[]
   readonly aliases: readonly string[]
+  readonly folder: string
 }
 
 export interface NoteMetadata {
@@ -15,6 +16,7 @@ export interface NoteMetadata {
   readonly tags: readonly string[]
   readonly excerpt: string
   readonly wordCount: number
+  readonly folder: string
 }
 
 export interface Note {
@@ -31,6 +33,7 @@ export interface CreateNoteInput {
   readonly title: string
   readonly content?: string
   readonly tags?: readonly string[]
+  readonly folder?: string
 }
 
 export interface UpdateNoteInput {
@@ -38,4 +41,5 @@ export interface UpdateNoteInput {
   readonly title?: string
   readonly content?: string
   readonly tags?: readonly string[]
+  readonly folder?: string
 }
