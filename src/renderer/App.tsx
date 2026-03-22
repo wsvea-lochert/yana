@@ -7,6 +7,7 @@ import { Toast } from './components/shared/Toast'
 import { useNoteStore } from './stores/note.store'
 import { useUiStore } from './stores/ui.store'
 import { useFolderStore } from './stores/folder.store'
+import { getSidebarOrderedNotes } from './lib/sidebar-order'
 
 export default function App() {
   const refreshFromVault = useNoteStore((s) => s.refreshFromVault)
@@ -112,13 +113,15 @@ export default function App() {
         setSettingsOpen(true)
       }
 
-      // Cmd+1-9 to select notes by position
+      // Cmd+1-9 to select notes by sidebar position
       if (mod && e.key >= '1' && e.key <= '9') {
         e.preventDefault()
         const index = parseInt(e.key, 10) - 1
         const { notes } = useNoteStore.getState()
-        if (index < notes.length) {
-          selectNote(notes[index].id)
+        const { folders } = useFolderStore.getState()
+        const ordered = getSidebarOrderedNotes(notes, folders)
+        if (index < ordered.length) {
+          selectNote(ordered[index].id)
         }
       }
 
