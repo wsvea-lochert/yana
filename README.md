@@ -2,7 +2,11 @@
   <img src="src/renderer/assets/yana_prod.png" alt="Yana" width="128" height="128" />
 </p>
 
-<h1 align="center">Yana</h1>
+<p align="center">
+  <img src="https://img.shields.io/badge/status-alpha-yellow" alt="Status: Alpha" />
+  <img src="https://img.shields.io/badge/maintained-semi-orange" alt="Maintained: Semi" />
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT" />
+</p>
 
 <p align="center">
   Keyboard-first personal knowledge capture tool
