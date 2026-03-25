@@ -113,13 +113,30 @@ export function Editor() {
 
   useEffect(() => {
     if (!editor || !activeNote) return
-    isSettingContent.current = true
+
     const title = activeNote.frontmatter.title
     const content = activeNote.content
     const fullContent = content ? `# ${title}\n\n${content}` : `# ${title}`
+
+    // Compare with current editor content to avoid cursor disruption on self-authored saves.
+    // Only call setContent when the content actually differs (i.e. an external change from the overlay).
+    const currentMarkdown = editor.storage.markdown.getMarkdown()
+    const { title: currentTitle, content: currentContent } = extractTitleAndContent(currentMarkdown)
+    if (currentTitle.trim() === title.trim() && currentContent.trim() === content.trim()) {
+      return
+    }
+
+    // TipTap's setContent dispatches a synchronous transaction, so onUpdate fires
+    // while isSettingContent.current is still true. This guard prevents save loops.
+    isSettingContent.current = true
     editor.commands.setContent(fullContent)
     isSettingContent.current = false
-  }, [editor, activeNote?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+    // Dependencies intentionally limited to id + modified timestamp.
+    // We read title and content inside the effect but only want to re-sync
+    // when the note is externally modified (new modified timestamp), not on every
+    // keystroke. The content comparison guard above handles the rest.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor, activeNote?.id, activeNote?.frontmatter.modified])
 
   useEffect(() => {
     return () => {
