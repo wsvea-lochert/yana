@@ -62,6 +62,7 @@ export interface OverlayApi {
   overlay: {
     hide: () => Promise<void>
     navigate: (noteId: string) => Promise<void>
+    showMain: () => Promise<void>
   }
   config: {
     get: (key: string) => Promise<unknown>

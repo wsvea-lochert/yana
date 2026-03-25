@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { NoteMetadata } from '@shared/types/note'
 import type { Folder } from '@shared/types/folder'
 import { FolderGroup } from './FolderGroup'
 import { SidebarNoteItem } from './SidebarNoteItem'
 import { SidebarNoteContextMenu } from './SidebarNoteContextMenu'
 import { sortNotes } from '@shared/utils/sort'
+import { cn } from '@/lib/utils'
 
 interface FolderTreeProps {
   readonly notes: readonly NoteMetadata[]
@@ -67,26 +68,53 @@ export function FolderTree({
     [folders]
   )
 
+  const [isRootDragOver, setIsRootDragOver] = useState(false)
+
   return (
     <div className="space-y-0.5">
-      {/* Root notes first */}
-      {rootNotes.map((note, i) => (
-        <SidebarNoteContextMenu
-          key={note.id}
-          currentFolder=""
-          allFolders={folders}
-          onDelete={() => onDeleteNote(note.id)}
-          onShowInFinder={() => onShowInFinder(note.id)}
-          onMoveToFolder={(folderId) => onMoveNote(note.id, folderId)}
-        >
-          <SidebarNoteItem
-            note={note}
-            index={i}
-            isActive={note.id === activeNoteId}
-            onClick={() => onSelectNote(note.id)}
-          />
-        </SidebarNoteContextMenu>
-      ))}
+      {/* Root notes — drop zone to move notes out of folders */}
+      <div
+        onDragOver={(e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+          setIsRootDragOver(true)
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setIsRootDragOver(false)
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault()
+          setIsRootDragOver(false)
+          const noteId = e.dataTransfer.getData('text/plain')
+          if (noteId && !rootNotes.some((n) => n.id === noteId)) {
+            onMoveNote(noteId, '')
+          }
+        }}
+        className={cn(
+          'rounded-md transition-colors',
+          isRootDragOver && 'ring-2 ring-primary/50 bg-primary/10 min-h-[2rem]'
+        )}
+      >
+        {rootNotes.map((note, i) => (
+          <SidebarNoteContextMenu
+            key={note.id}
+            currentFolder=""
+            allFolders={folders}
+            onDelete={() => onDeleteNote(note.id)}
+            onShowInFinder={() => onShowInFinder(note.id)}
+            onMoveToFolder={(folderId) => onMoveNote(note.id, folderId)}
+          >
+            <SidebarNoteItem
+              note={note}
+              index={i}
+              isActive={note.id === activeNoteId}
+              onClick={() => onSelectNote(note.id)}
+            />
+          </SidebarNoteContextMenu>
+        ))}
+      </div>
 
       {/* Folders */}
       {(() => {
@@ -110,6 +138,7 @@ export function FolderTree({
               onDeleteNote={onDeleteNote}
               onMoveNote={onMoveNote}
               onShowInFinder={onShowInFinder}
+              onDropNote={onMoveNote}
               allFolders={folders}
             />
           )

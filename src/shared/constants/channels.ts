@@ -13,6 +13,7 @@ export const CHANNELS = Object.freeze({
   VAULT_CHANGED: 'vault:changed',
   OVERLAY_SHOWN: 'overlay:shown',
   OVERLAY_NAVIGATE: 'overlay:navigate',
+  OVERLAY_SHOW_MAIN: 'overlay:showMain',
   THEME_CHANGED: 'theme:changed',
   UPDATE_OVERLAY_HOTKEY: 'hotkey:updateOverlay',
   HOTKEY_START_RECORDING: 'hotkey:startRecording',

@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef } from 'react'
+import { forwardRef, useEffect, useRef, useState } from 'react'
 import type { NoteMetadata } from '@shared/types/note'
 import { formatRelativeDate } from '@shared/utils/date'
 import { cn } from '@/lib/utils'
@@ -20,6 +20,7 @@ export const SidebarNoteItem = forwardRef<HTMLDivElement, SidebarNoteItemProps>(
   function SidebarNoteItem({ note, index, isActive, isIndented = false, onClick, ...props }, forwardedRef) {
     const localRef = useRef<HTMLDivElement>(null)
     const modifierHeld = useUiStore((s) => s.modifierHeld)
+    const [isDragging, setIsDragging] = useState(false)
 
     useEffect(() => {
       if (isActive) {
@@ -36,6 +37,13 @@ export const SidebarNoteItem = forwardRef<HTMLDivElement, SidebarNoteItemProps>(
         }}
         role="button"
         tabIndex={0}
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData('text/plain', note.id)
+          e.dataTransfer.effectAllowed = 'move'
+          setIsDragging(true)
+        }}
+        onDragEnd={() => setIsDragging(false)}
         onClick={onClick}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -48,7 +56,8 @@ export const SidebarNoteItem = forwardRef<HTMLDivElement, SidebarNoteItemProps>(
           'outline-none focus-visible:outline-none',
           'hover:bg-accent/60',
           isIndented ? 'pl-7 pr-3' : 'px-3',
-          isActive && 'bg-accent'
+          isActive && 'bg-accent',
+          isDragging && 'opacity-50'
         )}
         {...props}
       >

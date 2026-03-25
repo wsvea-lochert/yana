@@ -49,6 +49,12 @@ function registerOverlayHandler(overlayWindow: BrowserWindow, mainWindow: Browse
     mainWindow.focus()
     mainWindow.webContents.send(CHANNELS.OVERLAY_NAVIGATE, noteId)
   })
+
+  ipcMain.handle(CHANNELS.OVERLAY_SHOW_MAIN, () => {
+    overlayWindow.hide()
+    mainWindow.show()
+    mainWindow.focus()
+  })
 }
 
 const MODIFIER_KEYS = new Set([

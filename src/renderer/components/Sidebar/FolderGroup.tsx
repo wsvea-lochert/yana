@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { SidebarNoteItem } from './SidebarNoteItem'
@@ -18,6 +19,7 @@ interface FolderGroupProps {
   readonly onDeleteNote: (id: string) => void
   readonly onMoveNote: (noteId: string, folder: string) => void
   readonly onShowInFinder: (noteId: string) => void
+  readonly onDropNote: (noteId: string, folderId: string) => void
   readonly allFolders: readonly Folder[]
 }
 
@@ -32,24 +34,52 @@ export function FolderGroup({
   onDeleteNote,
   onMoveNote,
   onShowInFinder,
+  onDropNote,
   allFolders
 }: FolderGroupProps) {
+  const [isDragOver, setIsDragOver] = useState(false)
+
   return (
     <Collapsible open={!isCollapsed} onOpenChange={onToggleCollapsed}>
-      <FolderContextMenu folder={folder}>
-        <CollapsibleTrigger className="flex items-center gap-1.5 w-full px-2 py-1 rounded-md text-sm font-semibold hover:bg-accent/60 transition-colors no-drag outline-none">
-          <ChevronRight
-            className={cn(
-              'h-3.5 w-3.5 text-muted-foreground transition-transform',
-              !isCollapsed && 'rotate-90'
-            )}
-          />
-          <span className="truncate">{folder.name}</span>
-          <span className="ml-auto text-[11px] text-muted-foreground/50 font-normal">
-            {notes.length}
-          </span>
-        </CollapsibleTrigger>
-      </FolderContextMenu>
+      <div
+        onDragOver={(e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+          setIsDragOver(true)
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setIsDragOver(false)
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault()
+          setIsDragOver(false)
+          const noteId = e.dataTransfer.getData('text/plain')
+          if (noteId && !notes.some((n) => n.id === noteId)) {
+            onDropNote(noteId, folder.id)
+          }
+        }}
+        className={cn(
+          'rounded-md transition-colors',
+          isDragOver && 'ring-2 ring-primary/50 bg-primary/10'
+        )}
+      >
+        <FolderContextMenu folder={folder}>
+          <CollapsibleTrigger className="flex items-center gap-1.5 w-full px-2 py-1 rounded-md text-sm font-semibold hover:bg-accent/60 transition-colors no-drag outline-none">
+            <ChevronRight
+              className={cn(
+                'h-3.5 w-3.5 text-muted-foreground transition-transform',
+                !isCollapsed && 'rotate-90'
+              )}
+            />
+            <span className="truncate">{folder.name}</span>
+            <span className="ml-auto text-[11px] text-muted-foreground/50 font-normal">
+              {notes.length}
+            </span>
+          </CollapsibleTrigger>
+        </FolderContextMenu>
+      </div>
       <CollapsibleContent>
         <div className="ml-1">
           {notes.map((note, i) => (
