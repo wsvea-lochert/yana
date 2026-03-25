@@ -28,8 +28,7 @@ export function registerIpcHandlers(services: Services): void {
   registerNoteHandlers(
     services.vaultService,
     services.indexService,
-    services.searchService,
-    services.mainWindow
+    services.searchService
   )
   registerSearchHandlers(services.searchService)
   registerConfigHandlers()
