@@ -2,6 +2,8 @@ import { useRef, useCallback, useEffect } from 'react'
 import { useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import TaskList from '@tiptap/extension-task-list'
+import TaskItem from '@tiptap/extension-task-item'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { Markdown } from 'tiptap-markdown'
 import { Extension } from '@tiptap/core'
@@ -60,6 +62,8 @@ export function useOverlayEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ codeBlock: false }),
+      TaskList,
+      TaskItem.configure({ nested: true }),
       CodeBlockLowlight.configure({ lowlight }),
       Markdown,
       Placeholder.configure({

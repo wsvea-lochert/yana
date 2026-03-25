@@ -3,13 +3,15 @@ import { Search, X, PenLine, Plus } from 'lucide-react'
 import { EditorContent } from '@tiptap/react'
 import { cn } from '@/lib/utils'
 import { Kbd } from '@/components/ui/kbd'
-import { Button } from '@/components/ui/button'
 import { ResultsList } from './ResultsList'
 import { useOverlayEditor, extractTitleAndContent } from './useOverlayEditor'
+import { AUTOSAVE_DEBOUNCE_MS } from '@shared/constants/defaults'
 import type { OverlayApi } from '@shared/types/electron-env'
 import type { SearchResult } from '@shared/types/search'
 
 const overlayApi = window.api as unknown as OverlayApi
+
+const SAVE_STATUS_DISPLAY_MS = 2000
 
 type Mode = 'capture' | 'search'
 
@@ -22,9 +24,11 @@ export default function App() {
   const [savedText, setSavedText] = useState('')
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
-  const [showUnsavedPrompt, setShowUnsavedPrompt] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
 
   const savedTextFromLoad = useRef(false)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleEditorUpdate = useCallback((md: string) => {
     setCurrentMarkdown(md)
@@ -48,6 +52,10 @@ export default function App() {
   const searchRef = useRef<HTMLInputElement>(null)
 
   const isDirty = currentMarkdown !== savedText
+
+  // Refs for listeners that need current values without stale closures
+  const isDirtyRef = useRef(isDirty)
+  isDirtyRef.current = isDirty
 
   const handleSearch = useCallback(async (term: string) => {
     try {
@@ -121,7 +129,7 @@ export default function App() {
       setMode('capture')
       setSearchTerm('')
       setIsSaving(false)
-      setShowUnsavedPrompt(false)
+      setSaveStatus('idle')
       loadActiveNote()
       setTimeout(() => focus(), 50)
     })
@@ -138,16 +146,6 @@ export default function App() {
     }
   }, [mode, focus])
 
-  function handleHide() {
-    setVisible(false)
-    overlayApi.overlay.hide()
-  }
-
-  function handleSelect(noteId: string) {
-    setVisible(false)
-    overlayApi.overlay.navigate(noteId)
-  }
-
   function parseEditorContent(): { title: string; content: string } {
     const md = getMarkdown()
     return extractTitleAndContent(md)
@@ -157,6 +155,7 @@ export default function App() {
     const { title, content } = parseEditorContent()
     if (!title || title === 'Untitled' || isSaving) return false
     setIsSaving(true)
+    setSaveStatus('saving')
     try {
       if (editingNoteId) {
         await overlayApi.notes.update({ id: editingNoteId, title, content })
@@ -165,25 +164,96 @@ export default function App() {
         setEditingNoteId(metadata.id)
         overlayApi.config.set('activeNoteId', metadata.id).catch(() => {})
       }
+      setSavedText(getMarkdown())
+      setSaveStatus('saved')
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current)
+      statusTimerRef.current = setTimeout(() => setSaveStatus('idle'), SAVE_STATUS_DISPLAY_MS)
       return true
     } catch {
+      setSaveStatus('idle')
       return false
     } finally {
       setIsSaving(false)
     }
   }
 
-  async function handleSave() {
-    const saved = await performSave()
-    if (saved) handleHide()
+  // Keep a ref to performSave for the visibilitychange listener
+  const performSaveRef = useRef(performSave)
+  performSaveRef.current = performSave
+
+  // Auto-save on content changes (debounced)
+  useEffect(() => {
+    if (currentMarkdown === savedText) return
+    const { title } = extractTitleAndContent(currentMarkdown)
+    if (!title || title === 'Untitled') return
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      performSaveRef.current()
+    }, AUTOSAVE_DEBOUNCE_MS)
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    }
+  }, [currentMarkdown, savedText]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Flush pending save when window becomes hidden (covers production blur->hide)
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.hidden && isDirtyRef.current) {
+        if (saveTimerRef.current) {
+          clearTimeout(saveTimerRef.current)
+          saveTimerRef.current = null
+        }
+        performSaveRef.current()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current)
+    }
+  }, [])
+
+  function handleHide() {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = null
+    }
+    if (isDirty) {
+      performSave()
+    }
+    setVisible(false)
+    overlayApi.overlay.hide()
   }
 
-  function handleNewNote() {
-    if (isDirty) {
-      setShowUnsavedPrompt(true)
-    } else {
-      startNewNote()
+  function handleSelect(noteId: string) {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = null
     }
+    if (isDirty) {
+      performSave()
+    }
+    setVisible(false)
+    overlayApi.overlay.navigate(noteId)
+  }
+
+  async function handleNewNote() {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = null
+    }
+    if (isDirty) {
+      const saved = await performSave()
+      if (!saved) return
+    }
+    startNewNote()
   }
 
   function startNewNote() {
@@ -191,34 +261,11 @@ export default function App() {
     setCurrentMarkdown('')
     setSavedText('')
     setEditingNoteId(null)
-    setShowUnsavedPrompt(false)
+    setSaveStatus('idle')
     setTimeout(() => focus(), 50)
   }
 
-  async function saveAndNewNote() {
-    await performSave()
-    startNewNote()
-  }
-
-  function discardAndNewNote() {
-    startNewNote()
-  }
-
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (showUnsavedPrompt) {
-      if (e.key === 'y' || e.key === 'Y') {
-        e.preventDefault()
-        saveAndNewNote()
-        return
-      }
-      if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
-        e.preventDefault()
-        discardAndNewNote()
-        return
-      }
-      return
-    }
-
     if (e.key === 'Escape') {
       handleHide()
       return
@@ -232,7 +279,7 @@ export default function App() {
 
     if (mode === 'capture' && (e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault()
-      handleSave()
+      handleHide()
       return
     }
 
@@ -255,8 +302,6 @@ export default function App() {
       }
     }
   }
-
-  const { title: parsedTitle } = parseEditorContent()
 
   return (
     <div
@@ -317,30 +362,6 @@ export default function App() {
 
       <div className="h-px bg-border mx-3" />
 
-      {/* Unsaved changes prompt */}
-      {showUnsavedPrompt && (
-        <div className="px-4 py-3 bg-accent/50 border-b border-border flex items-center justify-between">
-          <p className="text-sm">Save changes before creating a new note?</p>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={discardAndNewNote}
-              className="h-7 text-xs gap-1"
-            >
-              Discard <Kbd className="text-[9px]">N</Kbd>
-            </Button>
-            <Button
-              size="sm"
-              onClick={saveAndNewNote}
-              className="h-7 text-xs gap-1"
-            >
-              Save <Kbd className="text-[9px]">Y</Kbd>
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Content area */}
       <div className="flex-1 overflow-hidden">
         {mode === 'capture' ? (
@@ -354,31 +375,33 @@ export default function App() {
                 <span className="flex items-center gap-1">
                   <Kbd className="text-[10px]">{navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl'}</Kbd>
                   <span>+</span>
-                  <Kbd className="text-[10px]">Enter</Kbd>
-                  <span className="ml-0.5">save</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <Kbd className="text-[10px]">{navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl'}</Kbd>
-                  <span>+</span>
                   <Kbd className="text-[10px]">N</Kbd>
                   <span className="ml-0.5">new</span>
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                {isDirty && (
-                  <span className="text-[11px] text-muted-foreground">unsaved</span>
-                )}
+                <span
+                  className={cn(
+                    'text-[11px] transition-opacity duration-300',
+                    saveStatus === 'idle' ? 'opacity-0' : 'opacity-100',
+                    saveStatus === 'saved' ? 'text-emerald-500' : 'text-muted-foreground'
+                  )}
+                >
+                  {saveStatus === 'saving' && 'Saving...'}
+                  {saveStatus === 'saved' && 'Saved \u2713'}
+                </span>
                 <button
-                  onClick={handleSave}
-                  disabled={!parsedTitle || parsedTitle === 'Untitled' || isSaving}
+                  onClick={handleHide}
                   className={cn(
                     'px-4 py-1.5 text-xs font-medium rounded-md transition-colors',
                     'bg-primary text-primary-foreground',
-                    'hover:bg-primary/90',
-                    'disabled:opacity-30 disabled:cursor-not-allowed'
+                    'hover:bg-primary/90'
                   )}
                 >
-                  {isSaving ? 'Saving...' : 'Save'}
+                  Done
+                  <Kbd className="ml-2 text-[10px] h-auto py-0.5 bg-white/15 text-primary-foreground">{navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl'}</Kbd>
+                  <span className="mx-0.5 text-[10px] text-primary-foreground/60">+</span>
+                  <Kbd className="text-[10px] h-auto py-0.5 bg-white/15 text-primary-foreground">{'\u23CE'}</Kbd>
                 </button>
               </div>
             </div>
