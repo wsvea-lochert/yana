@@ -2,6 +2,12 @@ import { autoUpdater } from 'electron-updater'
 import { BrowserWindow, dialog } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { CHANNELS } from '@shared/constants/channels'
+import { appState } from './app-state'
+
+export function restartForUpdate(): void {
+  appState.setQuitting(true)
+  autoUpdater.quitAndInstall(false, true)
+}
 
 export function initAutoUpdater(): void {
   if (is.dev) return
@@ -29,7 +35,7 @@ export function initAutoUpdater(): void {
       })
       .then(({ response }) => {
         if (response === 0) {
-          autoUpdater.quitAndInstall()
+          restartForUpdate()
         }
       })
   })

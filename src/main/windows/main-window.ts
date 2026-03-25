@@ -1,6 +1,7 @@
 import { BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
+import { appState } from '../app-state'
 
 export function buildMainWindowOptions(): Electron.BrowserWindowConstructorOptions {
   return {
@@ -29,7 +30,7 @@ export function createMainWindow(): BrowserWindow {
   })
 
   window.on('close', (e) => {
-    if (process.platform === 'darwin') {
+    if (process.platform === 'darwin' && !appState.isQuitting) {
       e.preventDefault()
       window.hide()
     }

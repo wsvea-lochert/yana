@@ -52,6 +52,9 @@ export function createMockApi(): YanaApi {
     shell: {
       showInFolder: vi.fn().mockResolvedValue(undefined)
     },
+    update: {
+      restart: vi.fn().mockResolvedValue(undefined)
+    },
     on: {
       vaultChanged: vi.fn().mockReturnValue(() => {}),
       overlayShown: vi.fn().mockReturnValue(() => {}),

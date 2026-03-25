@@ -34,6 +34,9 @@ export interface YanaApi {
   shell: {
     showInFolder: (noteId: string) => Promise<void>
   }
+  update: {
+    restart: () => Promise<void>
+  }
   on: {
     vaultChanged: (callback: (metadata: NoteMetadata) => void) => () => void
     overlayShown: (callback: () => void) => () => void

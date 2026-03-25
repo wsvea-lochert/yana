@@ -20,7 +20,23 @@ export function AppLayout() {
           {/* App title — aligned with traffic lights (y:16, x:16, ~52px wide) */}
           <div className="drag-region relative flex items-center h-[52px] pl-[76px]">
             <span className="text-sm font-bold tracking-wide text-foreground">Yana</span>
-            {updateAvailable && <Rocket className="h-3.5 w-3.5 text-primary ml-1.5 no-drag" />}
+            {updateAvailable && (
+              <button
+                type="button"
+                title="Update available — click to restart"
+                onClick={() => {
+                  const confirmed = window.confirm(
+                    'A new version is ready. Restart now to update?'
+                  )
+                  if (confirmed) {
+                    window.api.update.restart()
+                  }
+                }}
+                className="ml-1.5 no-drag cursor-pointer hover:opacity-70 transition-opacity"
+              >
+                <Rocket className="h-3.5 w-3.5 text-primary" />
+              </button>
+            )}
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <ShortcutHint shortcut="Mod+B" className="ml-0" />
             </div>

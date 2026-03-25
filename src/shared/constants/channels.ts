@@ -24,5 +24,6 @@ export const CHANNELS = Object.freeze({
   FOLDER_CREATE: 'folder:create',
   FOLDER_RENAME: 'folder:rename',
   FOLDER_DELETE: 'folder:delete',
-  UPDATE_AVAILABLE: 'update:available'
+  UPDATE_AVAILABLE: 'update:available',
+  RESTART_FOR_UPDATE: 'update:restart'
 } as const)
