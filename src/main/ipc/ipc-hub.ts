@@ -1,4 +1,7 @@
 import { ipcMain, shell, type BrowserWindow, type Input } from 'electron'
+import { is } from '@electron-toolkit/utils'
+import { restartForUpdate } from '../auto-updater'
+import { appState } from '../app-state'
 import { join } from 'path'
 import type { VaultService } from '../services/vault.service'
 import type { IndexService } from '../services/index.service'
@@ -36,6 +39,7 @@ export function registerIpcHandlers(services: Services): void {
   registerOverlayHandler(services.overlayWindow, services.mainWindow)
   registerHotkeyHandler(services.mainWindow)
   registerShellHandlers()
+  registerUpdateHandlers()
 }
 
 function registerOverlayHandler(overlayWindow: BrowserWindow, mainWindow: BrowserWindow): void {
@@ -220,6 +224,18 @@ function registerHotkeyHandler(mainWindow: BrowserWindow): void {
         activeHandler = null
       }
     }, 10000)
+  })
+}
+
+function registerUpdateHandlers(): void {
+  ipcMain.handle(CHANNELS.RESTART_FOR_UPDATE, () => {
+    if (is.dev) return
+    try {
+      restartForUpdate()
+    } catch (error) {
+      appState.setQuitting(false)
+      throw error
+    }
   })
 }
 

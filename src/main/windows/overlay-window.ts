@@ -3,6 +3,7 @@ import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { OVERLAY_WIDTH, OVERLAY_HEIGHT } from '@shared/constants/defaults'
 import { CHANNELS } from '@shared/constants/channels'
+import { appState } from '../app-state'
 
 let savedPosition: { x: number; y: number } | null = null
 let overlayInstance: BrowserWindow | null = null
@@ -61,9 +62,10 @@ export function createOverlayWindow(): BrowserWindow {
   })
 
   window.on('close', (e) => {
-    // Prevent destruction — just hide instead
-    e.preventDefault()
-    window.hide()
+    if (!appState.isQuitting) {
+      e.preventDefault()
+      window.hide()
+    }
   })
 
   if (!is.dev) {

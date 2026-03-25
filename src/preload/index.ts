@@ -41,6 +41,9 @@ const api: YanaApi = {
   shell: {
     showInFolder: (noteId: string) => ipcRenderer.invoke(CHANNELS.SHELL_SHOW_IN_FOLDER, noteId)
   },
+  update: {
+    restart: () => ipcRenderer.invoke(CHANNELS.RESTART_FOR_UPDATE)
+  },
   on: {
     vaultChanged: (callback) =>
       onChannel(CHANNELS.VAULT_CHANGED, (data) => callback(data as Parameters<typeof callback>[0])),

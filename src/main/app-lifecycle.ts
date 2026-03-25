@@ -17,6 +17,7 @@ import { CHANNELS } from '@shared/constants/channels'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { initAutoUpdater } from './auto-updater'
+import { appState } from './app-state'
 
 export function initializeApp(): void {
   app.whenReady().then(async () => {
@@ -119,11 +120,16 @@ export function initializeApp(): void {
     initAutoUpdater()
   })
 
+  app.on('before-quit', () => {
+    appState.setQuitting(true)
+  })
+
   app.on('will-quit', () => {
     unregisterHotkeys()
   })
 
   app.on('activate', () => {
+    appState.setQuitting(false)
     const mainWin = BrowserWindow.getAllWindows().find((w) => !w.isAlwaysOnTop())
     if (mainWin) {
       mainWin.show()
