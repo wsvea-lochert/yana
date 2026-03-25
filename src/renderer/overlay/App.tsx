@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Search, X, PenLine, Plus } from 'lucide-react'
+import { Search, X, PenLine, Plus, ArrowUpRight } from 'lucide-react'
 import { EditorContent } from '@tiptap/react'
 import { cn } from '@/lib/utils'
 import { Kbd } from '@/components/ui/kbd'
@@ -220,25 +220,25 @@ export default function App() {
     }
   }, [])
 
-  function handleHide() {
+  async function handleHide() {
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current)
       saveTimerRef.current = null
     }
     if (isDirty) {
-      performSave()
+      await performSave()
     }
     setVisible(false)
     overlayApi.overlay.hide()
   }
 
-  function handleSelect(noteId: string) {
+  async function handleSelect(noteId: string) {
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current)
       saveTimerRef.current = null
     }
     if (isDirty) {
-      performSave()
+      await performSave()
     }
     setVisible(false)
     overlayApi.overlay.navigate(noteId)
@@ -254,6 +254,22 @@ export default function App() {
       if (!saved) return
     }
     startNewNote()
+  }
+
+  async function handleOpenInMainWindow() {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = null
+    }
+    if (isDirty) {
+      await performSave()
+    }
+    setVisible(false)
+    if (editingNoteId) {
+      overlayApi.overlay.navigate(editingNoteId)
+    } else {
+      overlayApi.overlay.showMain()
+    }
   }
 
   function startNewNote() {
@@ -286,6 +302,12 @@ export default function App() {
     if (mode === 'capture' && (e.metaKey || e.ctrlKey) && e.key === 'n') {
       e.preventDefault()
       handleNewNote()
+      return
+    }
+
+    if (mode === 'capture' && (e.metaKey || e.ctrlKey) && e.key === 'o') {
+      e.preventDefault()
+      handleOpenInMainWindow()
       return
     }
 
@@ -342,15 +364,14 @@ export default function App() {
 
         <div className="flex-1" />
 
-        {mode === 'capture' && (
-          <button
-            onClick={handleNewNote}
-            className="overlay-no-drag p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            title="New note"
-          >
-            <Plus className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <button
+          onClick={handleOpenInMainWindow}
+          className="overlay-no-drag flex items-center gap-1 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          title="Open in main window"
+        >
+          <ArrowUpRight className="h-3.5 w-3.5" />
+          <span className="text-[10px] opacity-50">{navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl+'}O</span>
+        </button>
 
         <button
           onClick={handleHide}
@@ -371,14 +392,15 @@ export default function App() {
             </div>
 
             <div className="flex items-center justify-between px-4 py-2.5 border-t border-border">
-              <div className="flex items-center gap-3 text-[11px] text-muted-foreground/60">
-                <span className="flex items-center gap-1">
-                  <Kbd className="text-[10px]">{navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl'}</Kbd>
-                  <span>+</span>
-                  <Kbd className="text-[10px]">N</Kbd>
-                  <span className="ml-0.5">new</span>
-                </span>
-              </div>
+              <button
+                onClick={handleNewNote}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-muted-foreground/60 hover:text-foreground hover:bg-accent transition-colors"
+                title="New note"
+              >
+                <Plus className="h-3 w-3" />
+                <span>New</span>
+                <span className="text-[10px] ml-1 opacity-50">{navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl+'}N</span>
+              </button>
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
