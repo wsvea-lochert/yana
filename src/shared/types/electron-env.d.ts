@@ -34,6 +34,9 @@ export interface YanaApi {
   shell: {
     showInFolder: (noteId: string) => Promise<void>
   }
+  app: {
+    getVersion: () => Promise<string>
+  }
   update: {
     restart: () => Promise<void>
   }

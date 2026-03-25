@@ -3,6 +3,9 @@ import type { YanaApi } from '@shared/types/electron-env'
 
 export function createMockApi(): YanaApi {
   return {
+    app: {
+      getVersion: vi.fn().mockResolvedValue('0.1.0')
+    },
     notes: {
       list: vi.fn().mockResolvedValue([]),
       get: vi.fn().mockResolvedValue(null),

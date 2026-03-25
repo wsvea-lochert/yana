@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Rocket } from 'lucide-react'
 import { Sidebar } from '../Sidebar/Sidebar'
 import { Editor } from '../Editor/Editor'
@@ -8,6 +9,11 @@ export function AppLayout() {
   const sidebarVisible = useUiStore((s) => s.sidebarVisible)
   const focusMode = useUiStore((s) => s.focusMode)
   const updateAvailable = useUiStore((s) => s.updateAvailable)
+  const [version, setVersion] = useState('')
+
+  useEffect(() => {
+    window.api.app.getVersion().then(setVersion)
+  }, [])
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
@@ -20,6 +26,11 @@ export function AppLayout() {
           {/* App title — aligned with traffic lights (y:16, x:16, ~52px wide) */}
           <div className="drag-region relative flex items-center h-[52px] pl-[76px]">
             <span className="text-sm font-bold tracking-wide text-foreground">Yana</span>
+            {version && (
+              <span className="ml-1.5 text-[11px] font-medium text-muted-foreground/50">
+                v{version}
+              </span>
+            )}
             {updateAvailable && (
               <button
                 type="button"

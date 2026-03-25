@@ -1,4 +1,4 @@
-import { ipcMain, shell, type BrowserWindow, type Input } from 'electron'
+import { app, ipcMain, shell, type BrowserWindow, type Input } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { restartForUpdate } from '../auto-updater'
 import { appState } from '../app-state'
@@ -39,6 +39,7 @@ export function registerIpcHandlers(services: Services): void {
   registerOverlayHandler(services.overlayWindow, services.mainWindow)
   registerHotkeyHandler(services.mainWindow)
   registerShellHandlers()
+  registerAppHandlers()
   registerUpdateHandlers()
 }
 
@@ -225,6 +226,10 @@ function registerHotkeyHandler(mainWindow: BrowserWindow): void {
       }
     }, 10000)
   })
+}
+
+function registerAppHandlers(): void {
+  ipcMain.handle(CHANNELS.APP_GET_VERSION, () => (is.dev ? 'dev' : app.getVersion()))
 }
 
 function registerUpdateHandlers(): void {

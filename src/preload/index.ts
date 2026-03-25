@@ -11,6 +11,9 @@ function onChannel(channel: string, callback: (...args: unknown[]) => void): () 
 }
 
 const api: YanaApi = {
+  app: {
+    getVersion: () => ipcRenderer.invoke(CHANNELS.APP_GET_VERSION)
+  },
   notes: {
     list: () => ipcRenderer.invoke(CHANNELS.NOTE_LIST),
     get: (id: string) => ipcRenderer.invoke(CHANNELS.NOTE_GET, id),
