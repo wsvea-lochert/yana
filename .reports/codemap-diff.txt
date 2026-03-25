@@ -1,0 +1,19 @@
+Codemap Diff Report
+Generated: 2026-03-25
+
+Status: INITIAL CREATION (no previous version to diff)
+
+Files created:
+  codemaps/architecture.md  — Overall architecture, process model, directory layout, key decisions
+  codemaps/backend.md       — Main process: services, database, IPC, windows
+  codemaps/frontend.md      — Renderer: components (40), stores (5), hooks (5), overlay
+  codemaps/data.md          — Types, Zod schemas, DB schema, constants, file format
+
+Codebase stats:
+  Source files: ~97 TypeScript/TSX
+  Lines of code: ~6,554
+  React components: 40
+  IPC channels: 26
+  Zustand stores: 5
+
+Change percentage: N/A (first generation)
