@@ -96,3 +96,57 @@ User Input → React Component → Zustand Store → IPC (preload bridge)
 4. **Autosave** — 1000ms debounced saves
 5. **Folder Organization** — Metadata in electron-store (not filesystem)
 6. **Theme System** — Light/dark with persistence
+7. **Attachments** — Paste/drop images & files; stored under `~/Yana/attachments/YYYY/MM/<slug>-<hash>.<ext>`; served to the renderer via a custom `yana-attachment://` protocol (CSP-scoped, path-guarded).
+8. **Code-block Copy** — Hover affordance on fenced code blocks powered by a React NodeView over `CodeBlockLowlight`.
+9. **Format Toolbar** — Always-visible floating pill at the bottom-center of the main editor. 4 groups / 15 controls (marks, headings, lists, blocks+link) sharing the TipTap editor instance via a transaction-subscribed hook.
+
+## Format Toolbar Architecture
+
+```
+Editor.tsx
+  └── <FormatToolbar editor={editor} />                    (sticky bottom-6 pill)
+        ├── useEditorSelectionState(editor)                (on 'selectionUpdate'|'transaction' → forceUpdate)
+        ├── ToolbarButton (×14)                            (native <button>, aria-pressed, mousedown preventDefault)
+        │     └── editor.chain().focus().<cmd>().run()
+        └── LinkButton                                     (window.prompt → sanitizeLinkUrl → setLink/unsetLink)
+```
+
+Key files:
+- `src/renderer/components/Editor/FormatToolbar/FormatToolbar.tsx` — parent, 4 groups / 3 dividers
+- `src/renderer/components/Editor/FormatToolbar/ToolbarButton.tsx` — native button primitive with `mousedown` preventDefault
+- `src/renderer/components/Editor/FormatToolbar/ToolbarDivider.tsx` — vertical separator
+- `src/renderer/components/Editor/FormatToolbar/LinkButton.tsx` + `sanitizeLinkUrl`
+- `src/renderer/components/Editor/FormatToolbar/useEditorSelectionState.ts` — re-render tick hook
+- `src/renderer/components/Editor/FormatToolbar/format-toolbar.types.ts` — `ToolbarAction` / `ToolbarGroup`
+- Underline mark via `@tiptap/extension-underline` (registered in `Editor.tsx`)
+
+## Attachment Architecture
+
+```
+Paste/Drop → AttachmentUpload plugin → uploadBlob (bytes)
+  → window.api.attachments.save (preload)
+  → ATTACHMENT_SAVE handler (main)
+  → attachment.service (hash + slug + path-guard + write to ~/Yana/attachments/YYYY/MM/)
+  → returns { url: 'yana-attachment://local/<rel>', relativePath, size }
+  → TipTap inserts image/fileLink node with src/href = protocol URL
+
+On save: markdownProtocolToRelative rewrites src/href back to the portable relative form
+         before the note .md hits disk.
+On load: markdownRelativeToProtocol rewrites the relative form to the protocol URL
+         before TipTap renders.
+
+Runtime serving:
+<img src="yana-attachment://local/attachments/2026/04/cat-ab12.png">
+  → protocol.handle('yana-attachment', ...)
+  → attachmentService.resolveToAbsolutePath (ensureInsideVault)
+  → net.fetch(file:///…)
+```
+
+Key files:
+- `src/main/services/attachment.service.ts` — hashing, slug, dedup, write
+- `src/main/security/attachment-protocol.ts` — scheme registration + handler
+- `src/main/ipc/attachment-handlers.ts` — `ATTACHMENT_SAVE` channel
+- `src/renderer/services/attachment-client.ts` — blob upload + URL translators
+- `src/renderer/components/Editor/extensions/attachment-upload.ts` — paste/drop plugin
+- `src/renderer/components/Editor/extensions/file-link-node.ts` + `FileLinkNodeView.tsx` — non-image chip node
+- `src/renderer/components/Editor/extensions/code-block-copy.ts` + `CodeBlockView.tsx` — copy-button NodeView

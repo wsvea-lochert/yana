@@ -23,3 +23,8 @@ export const QUICK_SEARCH_DEFAULT_LIMIT = 10
 export const ACTIVE_NOTE_PERSIST_DEBOUNCE_MS = 500
 export const VAULT_DIR_NAME = 'Yana'
 export const VIRTUALIZE_NOTE_THRESHOLD = 200
+
+export const ATTACHMENT_DIR_NAME = 'attachments'
+export const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024
+export const ATTACHMENT_PROTOCOL = 'yana-attachment'
+export const ATTACHMENT_HOST = 'local'

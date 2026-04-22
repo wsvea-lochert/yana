@@ -26,5 +26,6 @@ export const CHANNELS = Object.freeze({
   FOLDER_DELETE: 'folder:delete',
   UPDATE_AVAILABLE: 'update:available',
   RESTART_FOR_UPDATE: 'update:restart',
-  APP_GET_VERSION: 'app:getVersion'
+  APP_GET_VERSION: 'app:getVersion',
+  ATTACHMENT_SAVE: 'attachment:save'
 } as const)

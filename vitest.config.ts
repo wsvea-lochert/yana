@@ -57,7 +57,8 @@ export default defineConfig({
           include: [
             'tests/unit/hooks/**/*.test.{ts,tsx}',
             'tests/unit/stores/**/*.test.{ts,tsx}',
-            'tests/unit/components/**/*.test.{ts,tsx}'
+            'tests/unit/components/**/*.test.{ts,tsx}',
+            'tests/unit/renderer/**/*.test.{ts,tsx}'
           ]
         }
       }

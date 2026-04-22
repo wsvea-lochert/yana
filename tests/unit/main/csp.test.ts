@@ -25,6 +25,14 @@ describe('buildCspHeader', () => {
     it('locks base-uri to self', () => {
       expect(csp).toContain("base-uri 'self'")
     })
+
+    it('permits yana-attachment: in img-src', () => {
+      expect(csp).toMatch(/img-src[^;]*yana-attachment:/)
+    })
+
+    it('permits yana-attachment: in media-src', () => {
+      expect(csp).toMatch(/media-src[^;]*yana-attachment:/)
+    })
   })
 
   describe('development', () => {
@@ -41,6 +49,10 @@ describe('buildCspHeader', () => {
 
     it('still sets object-src none', () => {
       expect(csp).toContain("object-src 'none'")
+    })
+
+    it('permits yana-attachment: in img-src', () => {
+      expect(csp).toMatch(/img-src[^;]*yana-attachment:/)
     })
   })
 })

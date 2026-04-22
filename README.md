@@ -30,6 +30,8 @@ Yana is a lightweight desktop app for capturing and retrieving notes without bre
 - **Plain Markdown Vault** -- Notes live as `.md` files in `~/Yana`. Edit them with any tool.
 - **Full-Text Search** -- SQLite FTS5 index over all note content, titles, and tags.
 - **Wiki-Style Links** -- Link between notes with `[[note-name]]` syntax.
+- **Image & File Attachments** -- Paste or drop images and files into any note; stored under `~/Yana/attachments/YYYY/MM/` and referenced with portable relative paths.
+- **Code Block Copy** -- Hover any fenced code block for a one-click copy button; syntax highlighting via lowlight.
 - **Tags** -- Organize with frontmatter tags, browse by tag in the sidebar.
 - **Command Palette** -- Quick actions via `Cmd/Ctrl+P`.
 - **Dark Mode** -- Light and dark themes.

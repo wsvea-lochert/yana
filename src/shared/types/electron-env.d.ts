@@ -2,6 +2,22 @@ import type { NoteMetadata, Note, CreateNoteInput, UpdateNoteInput } from './not
 import type { Folder } from './folder'
 import type { SearchQuery, SearchResult } from './search'
 
+export interface SavedAttachmentRef {
+  url: string
+  relativePath: string
+  size: number
+}
+
+export interface SaveAttachmentInput {
+  filename: string
+  mime: string
+  bytes: Uint8Array
+}
+
+export interface AttachmentsApi {
+  save: (input: SaveAttachmentInput) => Promise<SavedAttachmentRef>
+}
+
 export interface YanaApi {
   notes: {
     list: () => Promise<readonly NoteMetadata[]>
@@ -34,6 +50,7 @@ export interface YanaApi {
   shell: {
     showInFolder: (noteId: string) => Promise<void>
   }
+  attachments: AttachmentsApi
   app: {
     getVersion: () => Promise<string>
   }
@@ -74,6 +91,7 @@ export interface OverlayApi {
     get: (key: string) => Promise<unknown>
     set: (key: string, value: unknown) => Promise<void>
   }
+  attachments: AttachmentsApi
   on: {
     overlayShown: (callback: () => void) => () => void
     themeChanged: (callback: (theme: string) => void) => () => void

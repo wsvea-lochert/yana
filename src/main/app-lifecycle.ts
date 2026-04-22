@@ -12,6 +12,11 @@ import { createSearchService } from './services/search.service'
 import { createLinksService } from './services/links.service'
 import { createTagsService } from './services/tags.service'
 import { createFolderService } from './services/folder.service'
+import { createAttachmentService } from './services/attachment.service'
+import {
+  registerAttachmentProtocolHandler,
+  registerAttachmentProtocolSchemes
+} from './security/attachment-protocol'
 import { createDatabase } from './db/database'
 import { runMigrations } from './db/migrations'
 import { CHANNELS } from '@shared/constants/channels'
@@ -25,6 +30,10 @@ import { createLogger } from '@shared/logger'
 const appLogger = createLogger('app-lifecycle')
 
 export function initializeApp(): void {
+  // Scheme registration MUST run before app.whenReady. See
+  // src/main/security/attachment-protocol.ts for why.
+  registerAttachmentProtocolSchemes()
+
   app.whenReady().then(async () => {
     if (is.dev) {
       app.setName('Yana (Dev)')
@@ -51,6 +60,9 @@ export function initializeApp(): void {
     const tagsService = createTagsService()
     const searchService = createSearchService(db)
     const folderService = createFolderService(folderStore)
+    const attachmentService = createAttachmentService(vaultPath)
+
+    registerAttachmentProtocolHandler(attachmentService)
 
     const allNotes = await vaultService.listNotes()
     indexService.fullReindex(allNotes)
@@ -67,6 +79,7 @@ export function initializeApp(): void {
       linksService,
       tagsService,
       folderService,
+      attachmentService,
       overlayWindow,
       mainWindow,
       vaultPath
