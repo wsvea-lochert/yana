@@ -23,22 +23,7 @@ const OverlayKeymap = Extension.create({
   }
 })
 
-export function extractTitleAndContent(markdown: string): {
-  title: string
-  content: string
-} {
-  const lines = markdown.split('\n')
-  const firstLine = lines[0] ?? ''
-  const title = firstLine.replace(/^#\s+/, '').trim() || 'Untitled'
-
-  let contentStart = 1
-  while (contentStart < lines.length && lines[contentStart].trim() === '') {
-    contentStart++
-  }
-  const content = lines.slice(contentStart).join('\n')
-
-  return { title, content }
-}
+export { extractTitleAndContent } from '@shared/utils/markdown-title'
 
 interface UseOverlayEditorOptions {
   onUpdate: (markdown: string) => void

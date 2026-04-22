@@ -1,9 +1,10 @@
-import { BrowserWindow, screen } from 'electron'
+import { BrowserWindow, screen, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { OVERLAY_WIDTH, OVERLAY_HEIGHT } from '@shared/constants/defaults'
 import { CHANNELS } from '@shared/constants/channels'
 import { appState } from '../app-state'
+import { isSafeExternalUrl } from './url-guard'
 
 let savedPosition: { x: number; y: number } | null = null
 let overlayInstance: BrowserWindow | null = null
@@ -27,9 +28,10 @@ export function buildOverlayWindowOptions(): Electron.BrowserWindowConstructorOp
     roundedCorners: true,
     webPreferences: {
       preload: join(__dirname, '../preload/overlay.js'),
-      sandbox: false,
+      sandbox: true,
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      webSecurity: true
     }
   }
 }
@@ -53,6 +55,25 @@ function loadOverlayContent(window: BrowserWindow): void {
 export function createOverlayWindow(): BrowserWindow {
   const window = new BrowserWindow(buildOverlayWindowOptions())
   loadOverlayContent(window)
+
+  window.webContents.setWindowOpenHandler((details) => {
+    if (isSafeExternalUrl(details.url)) {
+      shell.openExternal(details.url)
+    }
+    return { action: 'deny' }
+  })
+
+  window.webContents.on('will-navigate', (event, url) => {
+    const rendererUrl = process.env['ELECTRON_RENDERER_URL']
+    const isInternal =
+      (rendererUrl && url.startsWith(rendererUrl)) || url.startsWith('file://')
+    if (!isInternal) {
+      event.preventDefault()
+      if (isSafeExternalUrl(url)) {
+        shell.openExternal(url)
+      }
+    }
+  })
 
   window.on('moved', () => {
     if (!window.isDestroyed()) {

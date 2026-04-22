@@ -1,7 +1,23 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { CHANNELS } from '@shared/constants/channels'
 import type { OverlayApi } from '@shared/types/electron-env'
 import type { CreateNoteInput, UpdateNoteInput } from '@shared/types/note'
+
+// Inline CHANNELS — see src/preload/index.ts for rationale. Only the subset
+// used by the overlay preload is listed. Keep in sync with @shared.
+const CHANNELS = Object.freeze({
+  NOTE_LIST: 'note:list',
+  NOTE_GET: 'note:get',
+  NOTE_CREATE: 'note:create',
+  NOTE_UPDATE: 'note:update',
+  SEARCH_QUICK: 'search:quick',
+  CONFIG_GET: 'config:get',
+  CONFIG_SET: 'config:set',
+  OVERLAY_HIDE: 'overlay:hide',
+  OVERLAY_SHOWN: 'overlay:shown',
+  OVERLAY_NAVIGATE: 'overlay:navigate',
+  OVERLAY_SHOW_MAIN: 'overlay:showMain',
+  THEME_CHANGED: 'theme:changed'
+} as const)
 
 const api: OverlayApi = {
   search: {

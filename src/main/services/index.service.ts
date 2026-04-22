@@ -1,47 +1,29 @@
 import type { DatabaseInstance } from '../db/database'
+import { createNoteRepository, type NoteRepository } from '../db/repositories/note.repository'
 import type { NoteMetadata } from '@shared/types/note'
 
 export interface IndexService {
   fullReindex(notes: readonly NoteMetadata[]): void
   indexNote(metadata: NoteMetadata, content: string): void
   removeNote(id: string): void
+  /** Expose the underlying repository for services that need delta queries. */
+  readonly repository: NoteRepository
 }
 
 export function createIndexService(db: DatabaseInstance): IndexService {
-  const insertStmt = db.prepare(`
-    INSERT OR REPLACE INTO notes (id, filename, title, created, modified, excerpt, word_count, tags, links, raw_content)
-    VALUES (@id, @filename, @title, @created, @modified, @excerpt, @wordCount, @tags, @links, @rawContent)
-  `)
-
-  const deleteStmt = db.prepare('DELETE FROM notes WHERE id = ?')
+  const repository = createNoteRepository(db)
 
   function indexNote(metadata: NoteMetadata, content: string): void {
-    insertStmt.run({
-      id: metadata.id,
-      filename: metadata.filename,
-      title: metadata.title,
-      created: metadata.created,
-      modified: metadata.modified,
-      excerpt: metadata.excerpt,
-      wordCount: metadata.wordCount,
-      tags: JSON.stringify(metadata.tags),
-      links: '[]',
-      rawContent: content
-    })
+    repository.upsert(metadata, content)
   }
 
   function removeNote(id: string): void {
-    deleteStmt.run(id)
+    repository.delete(id)
   }
 
   function fullReindex(notes: readonly NoteMetadata[]): void {
-    db.transaction(() => {
-      db.exec('DELETE FROM notes')
-      for (const note of notes) {
-        indexNote(note, '')
-      }
-    })()
+    repository.bulkReindex(notes.map((n) => ({ metadata: n, content: '' })))
   }
 
-  return { fullReindex, indexNote, removeNote }
+  return { fullReindex, indexNote, removeNote, repository }
 }

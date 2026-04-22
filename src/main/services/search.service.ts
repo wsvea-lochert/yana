@@ -3,7 +3,22 @@ import type { DatabaseInstance } from '../db/database'
 import type { NoteMetadata } from '@shared/types/note'
 import type { SearchQuery, SearchResult, FtsResult } from '@shared/types/search'
 import { SearchQuerySchema } from '@shared/schemas/search.schema'
-import { MAX_SEARCH_RESULTS, MAX_OVERLAY_RESULTS } from '@shared/constants/defaults'
+import {
+  MAX_SEARCH_RESULTS,
+  MAX_OVERLAY_RESULTS,
+  FUSE_THRESHOLD,
+  EXCERPT_PREVIEW_LENGTH,
+  QUICK_SEARCH_DEFAULT_LIMIT
+} from '@shared/constants/defaults'
+import { escapeFtsTerm } from './search-query'
+import { createLogger } from '@shared/logger'
+
+const searchLogger = createLogger('search.service')
+
+export interface SearchDelta {
+  readonly upserts: readonly NoteMetadata[]
+  readonly removals: readonly string[]
+}
 
 export interface SearchService {
   searchContent(query: string, limit?: number): readonly SearchResult[]
@@ -11,13 +26,16 @@ export interface SearchService {
   search(query: SearchQuery): readonly SearchResult[]
   quickSearch(term: string): readonly SearchResult[]
   rebuildFuseIndex(notes: readonly NoteMetadata[]): void
+  /** Incrementally update the Fuse index. Requires a previous rebuild. */
+  applyDelta(delta: SearchDelta): void
 }
 
 function ftsResultToSearchResult(row: FtsResult): SearchResult {
   return {
     id: row.id,
     title: row.title,
-    excerpt: row.rawContent.slice(0, 160),
+    excerpt: row.rawContent.slice(0, EXCERPT_PREVIEW_LENGTH),
+    // FTS5 rank is negative by convention (lower = better); negate for a score
     score: Math.abs(row.rank),
     matchType: 'content',
     tags: safeParseTags(row.tags),
@@ -35,23 +53,42 @@ function safeParseTags(tagsJson: string): readonly string[] {
 
 export function createSearchService(db: DatabaseInstance): SearchService {
   let fuseInstance: Fuse<NoteMetadata> | null = null
+  let noteIndex: Map<string, NoteMetadata> = new Map()
 
   function rebuildFuseIndex(notes: readonly NoteMetadata[]): void {
+    noteIndex = new Map(notes.map((n) => [n.id, n]))
     fuseInstance = new Fuse([...notes], {
       keys: [
         { name: 'title', weight: 2 },
         { name: 'tags', weight: 1 }
       ],
-      threshold: 0.3,
+      threshold: FUSE_THRESHOLD,
       includeScore: true
     })
   }
 
-  function searchContent(query: string, limit: number = MAX_SEARCH_RESULTS): readonly SearchResult[] {
-    const sanitized = query.replace(/['"]/g, '').trim()
-    if (!sanitized) return []
+  function applyDelta(delta: SearchDelta): void {
+    if (!fuseInstance) {
+      // No prior rebuild — fall back to full reindex from upserts alone
+      rebuildFuseIndex(delta.upserts)
+      return
+    }
+    for (const id of delta.removals) {
+      noteIndex.delete(id)
+      fuseInstance.remove((doc) => doc.id === id)
+    }
+    for (const note of delta.upserts) {
+      if (noteIndex.has(note.id)) {
+        fuseInstance.remove((doc) => doc.id === note.id)
+      }
+      noteIndex.set(note.id, note)
+      fuseInstance.add(note)
+    }
+  }
 
-    const ftsQuery = sanitized.split(/\s+/).map((t) => `${t}*`).join(' ')
+  function searchContent(query: string, limit: number = MAX_SEARCH_RESULTS): readonly SearchResult[] {
+    const ftsQuery = escapeFtsTerm(query)
+    if (!ftsQuery) return []
 
     try {
       const rows = db
@@ -66,12 +103,16 @@ export function createSearchService(db: DatabaseInstance): SearchService {
         .all(ftsQuery, limit) as FtsResult[]
 
       return rows.map(ftsResultToSearchResult)
-    } catch {
+    } catch (error) {
+      searchLogger.warn(`FTS query failed for "${query}"`, error)
       return []
     }
   }
 
-  function searchTitles(term: string, limit: number = 10): readonly SearchResult[] {
+  function searchTitles(
+    term: string,
+    limit: number = QUICK_SEARCH_DEFAULT_LIMIT
+  ): readonly SearchResult[] {
     if (!fuseInstance || !term.trim()) return []
 
     const results = fuseInstance.search(term, { limit })
@@ -123,5 +164,5 @@ export function createSearchService(db: DatabaseInstance): SearchService {
     return search({ term, limit: MAX_OVERLAY_RESULTS })
   }
 
-  return { searchContent, searchTitles, search, quickSearch, rebuildFuseIndex }
+  return { searchContent, searchTitles, search, quickSearch, rebuildFuseIndex, applyDelta }
 }
