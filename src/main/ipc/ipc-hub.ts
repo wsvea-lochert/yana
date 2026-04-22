@@ -5,6 +5,7 @@ import type { SearchService } from '../services/search.service'
 import type { LinksService } from '../services/links.service'
 import type { TagsService } from '../services/tags.service'
 import type { FolderService } from '../services/folder.service'
+import type { AttachmentService } from '../services/attachment.service'
 import { registerNoteHandlers } from './note-handlers'
 import { registerSearchHandlers } from './search-handlers'
 import { registerConfigHandlers } from './config-handlers'
@@ -13,6 +14,7 @@ import { registerOverlayHandlers } from './overlay-handlers'
 import { registerHotkeyHandler } from './hotkey-handlers'
 import { registerShellHandlers } from './shell-handlers'
 import { registerAppHandlers } from './app-handlers'
+import { registerAttachmentHandlers } from './attachment-handlers'
 
 export interface Services {
   vaultService: VaultService
@@ -21,6 +23,7 @@ export interface Services {
   linksService: LinksService
   tagsService: TagsService
   folderService: FolderService
+  attachmentService: AttachmentService
   overlayWindow: BrowserWindow
   mainWindow: BrowserWindow
   vaultPath: string
@@ -35,4 +38,5 @@ export function registerIpcHandlers(services: Services): void {
   registerHotkeyHandler(services.mainWindow)
   registerShellHandlers(services.vaultPath)
   registerAppHandlers()
+  registerAttachmentHandlers(services.attachmentService)
 }

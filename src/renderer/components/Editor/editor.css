@@ -95,6 +95,117 @@
   overflow-x: auto;
 }
 
+/* Code block node view: wrap <pre> so the copy button can sit on top */
+.ProseMirror .code-block-wrapper {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.ProseMirror .code-block-wrapper pre {
+  margin: 0;
+}
+
+.code-block-copy-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.75rem;
+  font-family: var(--font-ui);
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  background: color-mix(in srgb, var(--muted) 85%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 0.35rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease, color 150ms ease, background 150ms ease;
+}
+
+.code-block-wrapper:hover .code-block-copy-btn,
+.code-block-wrapper:focus-within .code-block-copy-btn,
+.code-block-copy-btn:focus-visible {
+  opacity: 1;
+}
+
+.code-block-copy-btn:hover {
+  color: currentColor;
+  background: var(--muted);
+}
+
+.code-block-copy-btn[data-copied='true'] {
+  color: var(--color-sage);
+  opacity: 1;
+}
+
+/* Attachments: inline images */
+.ProseMirror img.yana-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1rem auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px color-mix(in srgb, currentColor 10%, transparent);
+}
+
+/* Attachments: non-image file chip */
+.ProseMirror .yana-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  margin: 0.75rem 0;
+  text-decoration: none;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--muted) 60%, transparent);
+  transition: border-color 150ms, background 150ms;
+  max-width: 22rem;
+}
+
+.ProseMirror .yana-attachment-chip:hover {
+  border-color: var(--color-sage);
+  background: var(--muted);
+}
+
+.yana-attachment-chip__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: var(--color-sage);
+}
+
+.yana-attachment-chip__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.yana-attachment-chip__name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.yana-attachment-chip__size {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+/* Drop target visual hint */
+.ProseMirror[data-dropping='true']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px dashed var(--color-sage);
+  border-radius: 0.5rem;
+  pointer-events: none;
+}
+
 /* Inline code */
 .ProseMirror code:not(pre code) {
   font-family: var(--font-mono);

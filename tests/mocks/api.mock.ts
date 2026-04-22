@@ -55,6 +55,13 @@ export function createMockApi(): YanaApi {
     shell: {
       showInFolder: vi.fn().mockResolvedValue(undefined)
     },
+    attachments: {
+      save: vi.fn().mockResolvedValue({
+        url: 'yana-attachment://local/attachments/2026/04/mock.png',
+        relativePath: 'attachments/2026/04/mock.png',
+        size: 0
+      })
+    },
     update: {
       restart: vi.fn().mockResolvedValue(undefined)
     },

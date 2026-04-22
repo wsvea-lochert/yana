@@ -5,12 +5,22 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import Image from '@tiptap/extension-image'
+import Underline from '@tiptap/extension-underline'
 import { Markdown } from 'tiptap-markdown'
 import { common, createLowlight } from 'lowlight'
+import { toast } from 'sonner'
 import { useNoteStore } from '../../stores/note.store'
 import { AUTOSAVE_DEBOUNCE_MS } from '@shared/constants/defaults'
 import { WikiLink } from './extensions/wiki-link'
+import { FileLink } from './extensions/file-link-node'
+import { AttachmentUpload } from './extensions/attachment-upload'
+import { CodeBlockWithCopy } from './extensions/code-block-copy'
+import { FormatToolbar } from './FormatToolbar/FormatToolbar'
+import {
+  markdownProtocolToRelative,
+  markdownRelativeToProtocol
+} from '@renderer/services/attachment-client'
 import { LoadingBar } from '../shared/LoadingBar'
 import { Kbd } from '@/components/ui/kbd'
 import { titleToSlug } from '@shared/utils/slug'
@@ -55,7 +65,8 @@ export function Editor() {
       if (!activeNote || isSettingContent.current) return
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
       saveTimerRef.current = setTimeout(() => {
-        const { title, content } = extractTitleAndContent(markdown)
+        const portable = markdownProtocolToRelative(markdown)
+        const { title, content } = extractTitleAndContent(portable)
         updateNote({ id: activeNote.id, title, content })
       }, AUTOSAVE_DEBOUNCE_MS)
     },
@@ -71,6 +82,7 @@ export function Editor() {
       TaskItem.configure({
         nested: true
       }),
+      Underline,
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === 'heading' && node.attrs.level === 1) {
@@ -83,8 +95,21 @@ export function Editor() {
         openOnClick: false,
         HTMLAttributes: { class: 'text-sage underline decoration-sage/30 hover:decoration-sage' }
       }),
-      CodeBlockLowlight.configure({
+      CodeBlockWithCopy.configure({
         lowlight
+      }),
+      Image.configure({
+        inline: false,
+        allowBase64: false,
+        HTMLAttributes: { class: 'yana-image' }
+      }),
+      FileLink,
+      AttachmentUpload.configure({
+        onError: (message, error) => {
+          // eslint-disable-next-line no-console
+          console.error(message, error)
+          toast.error(message)
+        }
       }),
       Markdown,
       WikiLink.configure({
@@ -94,7 +119,7 @@ export function Editor() {
     editorProps: {
       attributes: {
         class:
-          'prose prose-lg max-w-none leading-[1.7] outline-none min-h-[calc(100vh-4rem)] px-12 py-8'
+          'prose prose-lg max-w-none leading-[1.7] outline-none min-h-[calc(100vh-4rem)] px-12 pt-8 pb-28'
       }
     },
     onUpdate: ({ editor: ed }) => {
@@ -109,11 +134,13 @@ export function Editor() {
     const title = activeNote.frontmatter.title
     const content = activeNote.content
     const fullContent = content ? `# ${title}\n\n${content}` : `# ${title}`
+    const renderable = markdownRelativeToProtocol(fullContent)
 
     // Compare with current editor content to avoid cursor disruption on self-authored saves.
     // Only call setContent when the content actually differs (i.e. an external change from the overlay).
     const currentMarkdown = editor.storage.markdown.getMarkdown()
-    const { title: currentTitle, content: currentContent } = extractTitleAndContent(currentMarkdown)
+    const currentPortable = markdownProtocolToRelative(currentMarkdown)
+    const { title: currentTitle, content: currentContent } = extractTitleAndContent(currentPortable)
     if (currentTitle.trim() === title.trim() && currentContent.trim() === content.trim()) {
       return
     }
@@ -121,7 +148,7 @@ export function Editor() {
     // TipTap's setContent dispatches a synchronous transaction, so onUpdate fires
     // while isSettingContent.current is still true. This guard prevents save loops.
     isSettingContent.current = true
-    editor.commands.setContent(fullContent)
+    editor.commands.setContent(renderable)
     isSettingContent.current = false
     // Dependencies intentionally limited to id + modified timestamp.
     // We read title and content inside the effect but only want to re-sync
@@ -152,9 +179,10 @@ export function Editor() {
   }
 
   return (
-    <div>
+    <div className="relative">
       {isLoading && <LoadingBar />}
       <EditorContent editor={editor} />
+      <FormatToolbar editor={editor} />
     </div>
   )
 }

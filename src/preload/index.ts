@@ -35,7 +35,8 @@ const CHANNELS = Object.freeze({
   FOLDER_DELETE: 'folder:delete',
   UPDATE_AVAILABLE: 'update:available',
   RESTART_FOR_UPDATE: 'update:restart',
-  APP_GET_VERSION: 'app:getVersion'
+  APP_GET_VERSION: 'app:getVersion',
+  ATTACHMENT_SAVE: 'attachment:save'
 } as const)
 
 function onChannel(channel: string, callback: (...args: unknown[]) => void): () => void {
@@ -77,6 +78,10 @@ const api: YanaApi = {
   },
   shell: {
     showInFolder: (noteId: string) => ipcRenderer.invoke(CHANNELS.SHELL_SHOW_IN_FOLDER, noteId)
+  },
+  attachments: {
+    save: (input: { filename: string; mime: string; bytes: Uint8Array }) =>
+      ipcRenderer.invoke(CHANNELS.ATTACHMENT_SAVE, input)
   },
   update: {
     restart: () => ipcRenderer.invoke(CHANNELS.RESTART_FOR_UPDATE)

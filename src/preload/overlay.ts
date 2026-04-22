@@ -16,7 +16,8 @@ const CHANNELS = Object.freeze({
   OVERLAY_SHOWN: 'overlay:shown',
   OVERLAY_NAVIGATE: 'overlay:navigate',
   OVERLAY_SHOW_MAIN: 'overlay:showMain',
-  THEME_CHANGED: 'theme:changed'
+  THEME_CHANGED: 'theme:changed',
+  ATTACHMENT_SAVE: 'attachment:save'
 } as const)
 
 const api: OverlayApi = {
@@ -37,6 +38,10 @@ const api: OverlayApi = {
   config: {
     get: (key: string) => ipcRenderer.invoke(CHANNELS.CONFIG_GET, key),
     set: (key: string, value: unknown) => ipcRenderer.invoke(CHANNELS.CONFIG_SET, { key, value })
+  },
+  attachments: {
+    save: (input: { filename: string; mime: string; bytes: Uint8Array }) =>
+      ipcRenderer.invoke(CHANNELS.ATTACHMENT_SAVE, input)
   },
   on: {
     overlayShown: (callback) => {
