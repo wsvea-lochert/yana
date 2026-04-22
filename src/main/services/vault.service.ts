@@ -5,8 +5,14 @@ import matter from 'gray-matter'
 import { watch, type FSWatcher } from 'chokidar'
 import { titleToSlug } from '@shared/utils/slug'
 import { toISOString } from '@shared/utils/date'
-import { CreateNoteInputSchema, UpdateNoteInputSchema } from '@shared/schemas/note.schema'
+import {
+  CreateNoteInputSchema,
+  UpdateNoteInputSchema,
+  NoteIdSchema,
+  FrontmatterSchema
+} from '@shared/schemas/note.schema'
 import { MAX_EXCERPT_LENGTH, CHOKIDAR_STABILITY_THRESHOLD } from '@shared/constants/defaults'
+import { ensureInsideVault } from './path-guard'
 import type {
   NoteMetadata,
   Note,
@@ -65,14 +71,16 @@ function parseNoteFile(
   rawContent: string
 ): { frontmatter: Frontmatter; content: string } {
   const { data, content } = matter(rawContent)
+  const parsed = FrontmatterSchema.safeParse(data)
+  const fm = parsed.success ? parsed.data : {}
   return {
     frontmatter: {
-      title: (data.title as string) ?? filenameToId(filePath),
-      created: (data.created as string) ?? toISOString(),
-      modified: (data.modified as string) ?? toISOString(),
-      tags: (data.tags as string[]) ?? [],
-      aliases: (data.aliases as string[]) ?? [],
-      folder: (data.folder as string) ?? ''
+      title: fm.title ?? filenameToId(filePath),
+      created: fm.created ?? toISOString(),
+      modified: fm.modified ?? toISOString(),
+      tags: fm.tags ?? [],
+      aliases: fm.aliases ?? [],
+      folder: fm.folder ?? ''
     },
     content: content.trim()
   }
@@ -117,15 +125,16 @@ export function createVaultService(vaultPath: string): VaultService {
   }
 
   async function getNote(id: string): Promise<Note | null> {
-    const filePath = join(vaultPath, `${id}.md`)
+    const safeId = NoteIdSchema.parse(id)
+    const filePath = ensureInsideVault(vaultPath, `${safeId}.md`)
     if (!existsSync(filePath)) return null
 
     const raw = await readFile(filePath, 'utf-8')
     const { frontmatter, content } = parseNoteFile(filePath, raw)
 
     return {
-      id,
-      filename: `${id}.md`,
+      id: safeId,
+      filename: `${safeId}.md`,
       frontmatter,
       content,
       rawContent: raw,
@@ -213,7 +222,8 @@ export function createVaultService(vaultPath: string): VaultService {
   }
 
   async function deleteNote(id: string): Promise<void> {
-    const filePath = join(vaultPath, `${id}.md`)
+    const safeId = NoteIdSchema.parse(id)
+    const filePath = ensureInsideVault(vaultPath, `${safeId}.md`)
     if (existsSync(filePath)) {
       await unlink(filePath)
     }

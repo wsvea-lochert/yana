@@ -14,24 +14,10 @@ import { WikiLink } from './extensions/wiki-link'
 import { LoadingBar } from '../shared/LoadingBar'
 import { Kbd } from '@/components/ui/kbd'
 import { titleToSlug } from '@shared/utils/slug'
+import { extractTitleAndContent } from '@shared/utils/markdown-title'
 import './editor.css'
 
 const lowlight = createLowlight(common)
-
-function extractTitleAndContent(markdown: string): { title: string; content: string } {
-  const lines = markdown.split('\n')
-  const firstLine = lines[0] ?? ''
-  const title = firstLine.replace(/^#\s+/, '').trim() || 'Untitled'
-
-  // Skip the heading line and any blank lines immediately after it
-  let contentStart = 1
-  while (contentStart < lines.length && lines[contentStart].trim() === '') {
-    contentStart++
-  }
-  const content = lines.slice(contentStart).join('\n')
-
-  return { title, content }
-}
 
 export function Editor() {
   const activeNote = useNoteStore((s) => s.activeNote)

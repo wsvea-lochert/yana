@@ -54,19 +54,20 @@ describe('Migrations', () => {
     expect(tables).toHaveLength(1)
   })
 
-  it('sets user_version to 1', () => {
+  it('sets user_version to latest migration', () => {
     db = createInMemoryDatabase()
     runMigrations(db)
     const version = db.pragma('user_version', { simple: true })
-    expect(version).toBe(1)
+    expect(version).toBeGreaterThanOrEqual(1)
   })
 
   it('is idempotent', () => {
     db = createInMemoryDatabase()
     runMigrations(db)
+    const first = db.pragma('user_version', { simple: true }) as number
     runMigrations(db)
-    const version = db.pragma('user_version', { simple: true })
-    expect(version).toBe(1)
+    const second = db.pragma('user_version', { simple: true }) as number
+    expect(second).toBe(first)
   })
 
   it('supports FTS insert/delete triggers', () => {

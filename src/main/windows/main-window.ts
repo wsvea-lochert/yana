@@ -2,6 +2,7 @@ import { BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { appState } from '../app-state'
+import { isSafeExternalUrl } from './url-guard'
 
 export function buildMainWindowOptions(): Electron.BrowserWindowConstructorOptions {
   return {
@@ -15,9 +16,10 @@ export function buildMainWindowOptions(): Electron.BrowserWindowConstructorOptio
     backgroundColor: '#ffffff',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
+      sandbox: true,
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      webSecurity: true
     }
   }
 }
@@ -37,8 +39,22 @@ export function createMainWindow(): BrowserWindow {
   })
 
   window.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    if (isSafeExternalUrl(details.url)) {
+      shell.openExternal(details.url)
+    }
     return { action: 'deny' }
+  })
+
+  window.webContents.on('will-navigate', (event, url) => {
+    const rendererUrl = process.env['ELECTRON_RENDERER_URL']
+    const isInternal =
+      (rendererUrl && url.startsWith(rendererUrl)) || url.startsWith('file://')
+    if (!isInternal) {
+      event.preventDefault()
+      if (isSafeExternalUrl(url)) {
+        shell.openExternal(url)
+      }
+    }
   })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {

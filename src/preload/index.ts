@@ -1,8 +1,42 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { CHANNELS } from '@shared/constants/channels'
 import type { YanaApi } from '@shared/types/electron-env'
 import type { CreateNoteInput, UpdateNoteInput } from '@shared/types/note'
 import type { SearchQuery } from '@shared/types/search'
+
+// Inline CHANNELS locally — sandboxed preloads need to be self-contained CJS
+// files. If both preload entries imported from @shared/constants/channels,
+// Rollup would extract it to out/preload/chunks/ which sandboxed preloads
+// cannot always require. Keep in sync with src/shared/constants/channels.ts.
+const CHANNELS = Object.freeze({
+  NOTE_LIST: 'note:list',
+  NOTE_GET: 'note:get',
+  NOTE_CREATE: 'note:create',
+  NOTE_UPDATE: 'note:update',
+  NOTE_DELETE: 'note:delete',
+  SEARCH_QUERY: 'search:query',
+  SEARCH_QUICK: 'search:quick',
+  CONFIG_GET: 'config:get',
+  CONFIG_SET: 'config:set',
+  CONFIG_GET_VAULT_PATH: 'config:getVaultPath',
+  OVERLAY_HIDE: 'overlay:hide',
+  VAULT_CHANGED: 'vault:changed',
+  OVERLAY_SHOWN: 'overlay:shown',
+  OVERLAY_NAVIGATE: 'overlay:navigate',
+  OVERLAY_SHOW_MAIN: 'overlay:showMain',
+  THEME_CHANGED: 'theme:changed',
+  UPDATE_OVERLAY_HOTKEY: 'hotkey:updateOverlay',
+  HOTKEY_START_RECORDING: 'hotkey:startRecording',
+  HOTKEY_RECORDED: 'hotkey:recorded',
+  NOTE_SAVED: 'note:saved',
+  SHELL_SHOW_IN_FOLDER: 'shell:showInFolder',
+  FOLDER_LIST: 'folder:list',
+  FOLDER_CREATE: 'folder:create',
+  FOLDER_RENAME: 'folder:rename',
+  FOLDER_DELETE: 'folder:delete',
+  UPDATE_AVAILABLE: 'update:available',
+  RESTART_FOR_UPDATE: 'update:restart',
+  APP_GET_VERSION: 'app:getVersion'
+} as const)
 
 function onChannel(channel: string, callback: (...args: unknown[]) => void): () => void {
   const handler = (_event: Electron.IpcRendererEvent, ...args: unknown[]) => callback(...args)

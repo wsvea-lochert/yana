@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { NoteMetadata, Note, CreateNoteInput, UpdateNoteInput } from '@shared/types/note'
+import { ACTIVE_NOTE_PERSIST_DEBOUNCE_MS } from '@shared/constants/defaults'
 import { useToastStore } from './toast.store'
 
 interface NoteState {
@@ -26,6 +27,31 @@ function showError(msg: string): void {
   useToastStore.getState().addToast(msg, 'error')
 }
 
+// Debounce activeNoteId persistence to avoid a config:set per keystroke.
+let persistActiveNoteTimer: ReturnType<typeof setTimeout> | null = null
+function schedulePersistActiveNote(id: string): void {
+  if (persistActiveNoteTimer) clearTimeout(persistActiveNoteTimer)
+  persistActiveNoteTimer = setTimeout(() => {
+    window.api.config.set('activeNoteId', id).catch((error: unknown) => {
+      // Non-critical: persistence of active note is cosmetic
+      showError(
+        `Could not save active note: ${error instanceof Error ? error.message : String(error)}`
+      )
+    })
+  }, ACTIVE_NOTE_PERSIST_DEBOUNCE_MS)
+}
+
+function replaceInList(
+  list: readonly NoteMetadata[],
+  updated: NoteMetadata
+): readonly NoteMetadata[] {
+  const idx = list.findIndex((n) => n.id === updated.id)
+  if (idx === -1) return [updated, ...list]
+  const next = [...list]
+  next[idx] = updated
+  return next
+}
+
 export const useNoteStore = create<NoteStore>((set, get) => ({
   notes: [],
   activeNoteId: null,
@@ -47,7 +73,7 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
 
   selectNote: async (id: string) => {
     set({ activeNoteId: id, isLoading: true })
-    window.api.config.set('activeNoteId', id).catch(() => {})
+    schedulePersistActiveNote(id)
     try {
       const note = await window.api.notes.get(id)
       set({ activeNote: note, isLoading: false })
@@ -73,13 +99,13 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
 
   updateNote: async (input: UpdateNoteInput) => {
     try {
-      await window.api.notes.update(input)
-      const { activeNoteId } = get()
+      const updated = await window.api.notes.update(input)
+      const { notes, activeNoteId } = get()
+      set({ notes: replaceInList(notes, updated) })
       if (activeNoteId === input.id) {
         const note = await window.api.notes.get(input.id)
         set({ activeNote: note })
       }
-      await get().loadNotes()
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error)
       showError(`Failed to update note: ${msg}`)
@@ -88,9 +114,9 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
 
   moveNoteToFolder: async (noteId: string, folder: string) => {
     try {
-      await window.api.notes.update({ id: noteId, folder })
-      await get().loadNotes()
-      const { activeNoteId } = get()
+      const updated = await window.api.notes.update({ id: noteId, folder })
+      const { notes, activeNoteId } = get()
+      set({ notes: replaceInList(notes, updated) })
       if (activeNoteId === noteId) {
         const note = await window.api.notes.get(noteId)
         set({ activeNote: note })
@@ -122,8 +148,11 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
       try {
         const note = await window.api.notes.get(activeNoteId)
         set({ activeNote: note })
-      } catch {
-        // Note may have been deleted externally
+      } catch (error) {
+        // Note may have been deleted externally — silently drop active note
+        set({ activeNote: null, activeNoteId: null })
+        // eslint-disable-next-line no-console
+        console.debug('[note.store] Active note no longer available', error)
       }
     }
   }

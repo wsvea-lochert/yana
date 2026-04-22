@@ -1,4 +1,5 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, session } from 'electron'
+import { applyCsp } from './security/csp'
 import { createMainWindow } from './windows/main-window'
 import { createOverlayWindow, showOverlay, hideOverlay } from './windows/overlay-window'
 import { createTray } from './tray'
@@ -14,10 +15,14 @@ import { createFolderService } from './services/folder.service'
 import { createDatabase } from './db/database'
 import { runMigrations } from './db/migrations'
 import { CHANNELS } from '@shared/constants/channels'
+import { VAULT_DIR_NAME } from '@shared/constants/defaults'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { initAutoUpdater } from './auto-updater'
 import { appState } from './app-state'
+import { createLogger } from '@shared/logger'
+
+const appLogger = createLogger('app-lifecycle')
 
 export function initializeApp(): void {
   app.whenReady().then(async () => {
@@ -25,9 +30,11 @@ export function initializeApp(): void {
       app.setName('Yana (Dev)')
     }
 
-    const home = process.env.HOME ?? process.env.USERPROFILE ?? '.'
-    const vaultPath = join(home, 'Yana')
+    const home = process.env.HOME ?? process.env.USERPROFILE ?? app.getPath('home')
+    const vaultPath = join(home, VAULT_DIR_NAME)
     const dbPath = join(app.getPath('userData'), 'yana.db')
+
+    applyCsp(session.defaultSession, { dev: is.dev })
 
     const db = createDatabase(dbPath)
     runMigrations(db)
@@ -61,7 +68,8 @@ export function initializeApp(): void {
       tagsService,
       folderService,
       overlayWindow,
-      mainWindow
+      mainWindow,
+      vaultPath
     })
 
     createAppMenu(mainWindow)
@@ -88,8 +96,8 @@ export function initializeApp(): void {
       if (typeof savedHotkey === 'string' && savedHotkey) {
         updateOverlayHotkey(savedHotkey)
       }
-    } catch {
-      // use default hotkey
+    } catch (error) {
+      appLogger.warn('Failed to load saved overlay hotkey; using default', error)
     }
 
     vaultService.startWatching(async (event) => {
@@ -99,8 +107,7 @@ export function initializeApp(): void {
           const metadata = (await vaultService.listNotes()).find((n) => n.id === event.id)
           if (metadata) {
             indexService.indexNote(metadata, note.content)
-            const allNotesUpdated = await vaultService.listNotes()
-            searchService.rebuildFuseIndex(allNotesUpdated)
+            searchService.applyDelta({ upserts: [metadata], removals: [] })
             BrowserWindow.getAllWindows().forEach((w) =>
               w.webContents.send(CHANNELS.VAULT_CHANGED, metadata)
             )
@@ -108,8 +115,7 @@ export function initializeApp(): void {
         }
       } else if (event.type === 'unlink') {
         indexService.removeNote(event.id)
-        const allNotesUpdated = await vaultService.listNotes()
-        searchService.rebuildFuseIndex(allNotesUpdated)
+        searchService.applyDelta({ upserts: [], removals: [event.id] })
         BrowserWindow.getAllWindows().forEach((w) =>
           w.webContents.send(CHANNELS.VAULT_CHANGED, { id: event.id, deleted: true })
         )
@@ -118,6 +124,10 @@ export function initializeApp(): void {
 
     mainWindow.show()
     initAutoUpdater()
+  }).catch((error) => {
+    // eslint-disable-next-line no-console
+    console.error('[main] Fatal startup error:', error)
+    app.quit()
   })
 
   app.on('before-quit', () => {
